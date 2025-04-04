@@ -6,17 +6,18 @@ html {
   --treeview-node-border-width: 2px;
   --treeview-node-border-radius: 5px;
 
-  /* Keep page/folder styles in case they are somehow rendered, but add tag styles */
+  /* Page style (used for actual page nodes now) */
   --treeview-page-color: var(--editor-wiki-link-page-color);
   --treeview-page-background-color: var(--editor-wiki-link-page-background-color);
   --treeview-page-border-color: var(--treeview-page-background-color);
 
-  --treeview-folder-color: var(--editor-wiki-link-page-missing-color);
+  /* Folder style */
+  --treeview-folder-color: var(--editor-wiki-link-page-missing-color); /* Or choose another color */
   --treeview-folder-background-color: var(--treeview-page-background-color);
   --treeview-folder-border-color: var(--treeview-page-background-color);
 
-  /* Variables for Tag Nodes */
-  --treeview-tag-color: var(--treeview-page-color);
+  /* Tag style (Can be distinct or same as folder/page) */
+  --treeview-tag-color: var(--treeview-folder-color); /* Example: Same color as folder */
   --treeview-tag-background-color: var(--treeview-page-background-color);
   --treeview-tag-border-color: var(--treeview-page-border-color);
 
@@ -25,8 +26,8 @@ html {
 .treeview-root {
   /* SortableTree variables */
   --st-label-height: auto;
-  --st-subnodes-padding-left: 1.25rem; /* Hierarchy relevant again */
-  --st-collapse-icon-height: 2.1rem; /* Adjust if needed */
+  --st-subnodes-padding-left: 1.25rem;
+  --st-collapse-icon-height: 2.1rem;
   --st-collapse-icon-width: 1.25rem;
   --st-collapse-icon-size: 1rem;
 }
@@ -34,7 +35,7 @@ html {
 /******************************************************************************
  * Page styles
  *****************************************************************************/
-
+/* ... html, body, .treeview-root styles remain the same ... */
 html, body {
   background-color: var(--root-background-color);
   padding: 0;
@@ -51,7 +52,7 @@ html, body {
 /******************************************************************************
  * Header styles
  *****************************************************************************/
-
+/* ... .treeview-header, .treeview-actions, button styles remain the same ... */
 .treeview-header {
   position: sticky;
   top: 0;
@@ -113,65 +114,46 @@ html, body {
 	display: flex;
 	flex-direction: column;
   margin: 0.25rem 0.5rem 1rem;
-  /* Restore padding since hierarchy is used */
   padding-left: var(--st-subnodes-padding-left);
 }
 
-/* Ensure this rule allows the icon to be displayed */
+/* Collapse icon styling */
 .tree__collapse {
   color: var(--editor-command-button-color);
-  display: flex; /* Or whatever SortableTree default is */
+  display: flex;
   align-items: center;
 }
-
-/* Hide collapse icon only if node has no children */
+/* Hide collapse icon if node has no children */
 sortable-tree-node > div:nth-child(2):empty + .tree__collapse {
-   /* Selects the collapse span only if the subnode div (2nd child) is empty */
    display: none;
+}
+/* Hide collapse icon specifically for page nodes */
+sortable-tree-node[data-node-type="page"] > .tree__collapse {
+    /* display: none; */ /* SortableTree might not add it anyway for leaves */
+    /* Or make it invisible but keep space */
+     visibility: hidden;
 }
 
 
 .tree__label {
   display: flex;
-  padding: 2px 0; /* Adjust vertical padding */
+  padding: 2px 0;
   position: relative;
 }
 
-/* D&D related styles (can be kept or removed if D&D is never enabled) */
-.tree__label:after {
-  content: ' ';
-  position: absolute;
-  z-index: 4;
-  inset: calc(var(--treeview-node-border-width) * -1) var(--treeview-node-border-width);
-  border-top: calc(var(--treeview-node-border-width) * 2) solid transparent;
-  border-bottom: calc(var(--treeview-node-border-width) * 2) solid transparent;
-  transition: border-color 0.2s;
-  pointer-events: none;
-}
+/* D&D styles (can be removed if desired) */
+.tree__label:after { content: ' '; position: absolute; z-index: 4; inset: calc(var(--treeview-node-border-width) * -1) var(--treeview-node-border-width); border-top: calc(var(--treeview-node-border-width) * 2) solid transparent; border-bottom: calc(var(--treeview-node-border-width) * 2) solid transparent; transition: border-color 0.2s; pointer-events: none; }
 .tree__node--drop-before > .tree__label:after { border-top-color: var(--ui-accent-color); }
 .tree__node--drop-after > .tree__label:after { border-bottom-color: var(--ui-accent-color); }
-.tree__node--dragging {
-  margin: calc(var(--treeview-node-border-width) * -1);
-  border: var(--treeview-node-border-width) dashed var(--subtle-color);
-  border-radius: var(--treeview-node-border-radius);
-  cursor: move !important;
-  opacity: 0.75;
-}
-.tree__node--dragging .tree__label > span {
-   opacity: 0.75;
-}
-.tree__node--drop-inside > .tree__label > span {
-  z-index: 3;
-  background-color: var(--subtle-background-color);
-  border-color: var(--ui-accent-color);
-}
+.tree__node--dragging { margin: calc(var(--treeview-node-border-width) * -1); border: var(--treeview-node-border-width) dashed var(--subtle-color); border-radius: var(--treeview-node-border-radius); cursor: move !important; opacity: 0.75; }
+.tree__node--dragging .tree__label > span { opacity: 0.75; }
+.tree__node--drop-inside > .tree__label > span { z-index: 3; background-color: var(--subtle-background-color); border-color: var(--ui-accent-color); }
 /* End D&D styles */
-
 
 /* General style for the node text container (span) */
 .tree__label > span {
-  overflow: visible; /* Allow pseudo elements maybe? Adjust if text overflows badly */
-  padding: 4px 5px; /* Adjust padding */
+  overflow: hidden;
+  padding: 4px 5px;
   border-color: transparent;
   border-width: var(--treeview-node-border-width);
   border-style: solid;
@@ -179,64 +161,69 @@ sortable-tree-node > div:nth-child(2):empty + .tree__collapse {
   cursor: pointer;
   font-family: var(--editor-font);
   font-size: 16px;
-  line-height: 1.4; /* Restore default line height */
+  line-height: 1.4;
   text-decoration: none;
-  white-space: nowrap; /* Keep title on one line */
-  display: inline-block; /* Fit content width */
+  white-space: nowrap;
+  text-overflow: ellipsis; /* Add ellipsis back for long names */
+  display: inline-block;
   margin-bottom: 2px;
-  position: relative; /* Needed for ::before */
+  position: relative;
 }
 
 /* Add icons using ::before */
-/* .tree__label > span::before { */
-  /* display: inline-block; /* Allows margin */ */
-  /* margin-right: 6px;   /* Space between icon and text */ */
-  /* font-size: 1em;      /* Adjust icon size */ */
-  /* vertical-align: -0.1em; /* Fine-tune vertical alignment */ */
-  /* width: 1.1em; /* Reserve some width */ */
-  /* text-align: center; */
-  /* line-height: 1; /* Prevent icon affecting line height */ */
-/* } */
+.tree__label > span::before {
+  display: inline-block;
+  margin-right: 6px;
+  font-size: 1em;
+  vertical-align: -0.1em;
+  width: 1.1em;
+  text-align: center;
+  line-height: 1;
+}
 
 /* Specific node type styling */
-.tree__label > span[data-node-type="page"] { /* Fallback */
-  background-color: var(--treeview-page-background-color);
-  border-color: var(--treeview-page-border-color);
-  color: var(--treeview-page-color);
-}
 .tree__label > span[data-node-type="folder"] {
-  /* font-weight: bold; */ /* Example */
   background-color: var(--treeview-folder-background-color);
   border-color: var(--treeview-folder-border-color);
   color: var(--treeview-folder-color);
+  /* font-weight: bold; */ /* Optional: Make folders bold */
 }
-/* .tree__label > span[data-node-type="folder"]::before { */
-  /* content: "📁"; /* Unicode Folder icon */ */
-/* } */
+.tree__label > span[data-node-type="folder"]::before {
+  content: "📁"; /* Unicode Folder icon */
+}
+
 .tree__label > span[data-node-type="tag"] {
   background-color: var(--treeview-tag-background-color);
   border-color: var(--treeview-tag-border-color);
   color: var(--treeview-tag-color);
 }
-/* .tree__label > span[data-node-type="tag"]::before { */
-  /* content: "🏷️"; /* Unicode Tag icon */ */
-/* } */
+.tree__label > span[data-node-type="tag"]::before {
+  content: "🏷️"; /* Unicode Tag icon */
+}
+
+.tree__label > span[data-node-type="page"] {
+  background-color: var(--treeview-page-background-color);
+  border-color: var(--treeview-page-border-color);
+  color: var(--treeview-page-color);
+}
+.tree__label > span[data-node-type="page"]::before {
+  content: "📄"; /* Unicode Page icon */
+}
+
 
 /* Style for the page count within the tag label */
 .treeview-node-pagecount {
-  font-size: 0.85em; /* Slightly larger count */
+  font-size: 0.85em;
   margin-left: 6px;
   opacity: 0.7;
-  display: inline-block; /* Keep it inline */
+  display: inline-block;
   vertical-align: baseline;
 }
 
-/* REMOVED: Styling for .treeview-fullpath-detail */
-
-
-/* Optional: Add hover effect to tag and folder nodes */
+/* Hover effect */
 .tree__label > span[data-node-type="tag"]:hover,
-.tree__label > span[data-node-type="folder"]:hover {
+.tree__label > span[data-node-type="folder"]:hover,
+.tree__label > span[data-node-type="page"]:hover {
     background-color: var(--subtle-background-color);
     border-color: var(--ui-accent-color);
 }
