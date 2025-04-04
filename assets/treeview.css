@@ -234,18 +234,6 @@ sortable-tree-node > div:nth-child(2):empty + .tree__collapse {
   vertical-align: baseline;
 }
 
-/* Style for the full path detail inside the span */
-.treeview-fullpath-detail {
-  display: block; /* Put it on its own line */
-  font-size: 0.75em; /* Make it smaller */
-  opacity: 0.65;
-  margin-left: 0; /* Remove potential indent */
-  white-space: normal; /* Allow wrapping */
-  padding-left: calc(1.1em + 6px); /* Indent path detail to align with text after icon */
-  margin-top: 1px; /* Small space above */
-}
-
-
 /* Optional: Add hover effect to tag and folder nodes */
 .tree__label > span[data-node-type="tag"]:hover,
 .tree__label > span[data-node-type="folder"]:hover {

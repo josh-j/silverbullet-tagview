@@ -82,13 +82,8 @@ function createTagTreeView(config) {
         // Added inline styles for basic layout attempt
         return `
           <span
-            data-node-type="${data.nodeType}"
-            title="${data.name}"
-            style="line-height: 1.2;" >
-               ${data.title}${pageCountHtml}
-               <span style="display: block; font-size: 0.8em; opacity: 0.7; margin-left: 0;"> ${fullPathHtml} </span>
-          </span>`;
-      },
+            data-node-type="<span class="math-inline">\{data\.nodeType\}"
+    },
   });
 }
 
