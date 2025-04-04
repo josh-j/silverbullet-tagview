@@ -103,7 +103,7 @@ export async function showTree() {
         treeElementId: "treeview-tree",
         dragAndDrop: { enabled: false },
         // *** Pass SVG content for node icons ***
-        nodeIcons: {
+        icons: {
             collapsed: nodeIconCollapsedSvg, // Pass chevron-right content
             open: nodeIconOpenSvg           // Pass chevron-down content
         }
