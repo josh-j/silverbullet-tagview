@@ -10,6 +10,8 @@
  * @property {function} collapse - Function to collapse/expand the node.
  * @property {function} toggle - Function to toggle the collapse state.
  * @property {HTMLElement} children - Child elements (including subnodes container).
+ * @property {function} reveal - Expands parent nodes to make this node visible.
+ * @property {function} scrollIntoView - Scrolls the node into the visible area.
  */
 
 /**
@@ -20,7 +22,7 @@
  * @property {string} treeElementId - The ID of the HTML element where the tree will be rendered.
  * @property {Object} dragAndDrop - Drag and drop configuration (should be disabled).
  * @property {boolean} dragAndDrop.enabled - Should be false.
- * @property {string} currentPage - Name of the currently open page. // *** Added ***
+ * @property {string} currentPage - Name of the currently open page.
  */
 
 /**
@@ -36,6 +38,7 @@
  * @class SortableTree
  * @param {Object} options - Configuration options for the tree.
  * @property {function} clearState - Method to clear the persisted collapse/expand state.
+ * @property {function} findNode - Method to find a node based on data property.
  */
 
 
@@ -118,7 +121,7 @@ function createTagTreeView(config) {
           content = title;
         }
 
-        // *** Check if this node is the current page ***
+        // Check if this node is the current page
         // Only pages can be the current page
         const isCurrentPage = (data.nodeType === 'page' && data.name === panelCurrentPage);
 
@@ -175,16 +178,44 @@ function initializeTreeViewPanel(config) {
         syscall("system.invokeFunction", "treeview.show"); // Will re-run this whole init
         return true;
       }
-      // Add reveal current page action if desired (similar to example JS)
-      // case "reveal-current-page": { ... }
+      // *** ADD reveal-current-page handler ***
+      case "reveal-current-page": {
+        // Find the node corresponding to the current page
+        // We need to search based on the 'name' property in the node data
+        const pageNodeElement = Array.from(document.querySelectorAll('sortable-tree-node .tree__label > span[data-node-type="page"]'))
+                                   .find(span => span.getAttribute('title') === panelCurrentPage);
+
+        if (pageNodeElement) {
+            // Get the parent sortable-tree-node custom element
+            const sortableNode = pageNodeElement.closest('sortable-tree-node');
+            if (sortableNode && typeof sortableNode.reveal === 'function') {
+                sortableNode.reveal(); // Expand ancestors
+                // Scroll the specific label span into view
+                pageNodeElement.scrollIntoView({
+                    behavior: "smooth", // "auto" or "smooth"
+                    block: "nearest",
+                    inline: "nearest",
+                });
+                return true;
+            } else {
+                console.warn("Could not find sortable-tree-node for current page element or reveal function missing.");
+            }
+        } else {
+            console.warn("Could not find node for current page:", panelCurrentPage);
+            syscall("editor.flashNotification", "Current page not found in tree.", "info");
+        }
+        return false; // Indicate page wasn't found or revealed
+      }
     }
-    return false;
+    return false; // Action not recognized or handled
   }
 
   // Add click listeners to all action buttons in the header
+  // Ensure the new action is included in the list of handled actions
+  const handledActions = ["refresh", "close-panel", "collapse-all", "expand-all", "reveal-current-page"];
   document.querySelectorAll("[data-treeview-action]").forEach((el) => {
     const action = el.dataset["treeviewAction"];
-    if (["refresh", "close-panel", "collapse-all", "expand-all"].includes(action)) {
+    if (handledActions.includes(action)) { // Check if action is handled
       el.addEventListener("click", (e) => {
         if (handleAction(action)) {
           e.stopPropagation();
