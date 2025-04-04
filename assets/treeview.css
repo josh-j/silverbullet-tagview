@@ -1,130 +1,270 @@
-    /* --- Previous CSS rules --- */
-    /* ... (Variables, Root, Header, Actions, .tree, .tree__label etc.) ... */
+/******************************************************************************
+ * Page variables
+ *****************************************************************************/
 
-    /* --- Adjust Spacing --- */
-    .tree__label > span {
-      overflow: hidden;
-      /* Reduce vertical padding */
-      padding: 2px 5px;
-      border-color: transparent;
-      border-width: var(--treeview-node-border-width);
-      border-style: solid;
-      border-radius: var(--treeview-node-border-radius);
-      cursor: pointer;
-      font-family: var(--editor-font);
-      font-size: 15px; /* Slightly smaller font */
-      /* Reduce line-height */
-      line-height: 1.3;
-      text-decoration: none;
-      white-space: nowrap;
-      text-overflow: ellipsis;
-      display: inline-block;
-      /* Reduce bottom margin */
-      margin-bottom: 1px;
-      position: relative;
-      vertical-align: middle; /* Align span vertically */
-    }
+html {
+  --treeview-node-border-width: 2px;
+  --treeview-node-border-radius: 5px;
 
-    /* --- Icon Styling --- */
+  /* Page style (used for actual page nodes now) */
+  --treeview-page-color: var(--editor-wiki-link-page-color);
+  --treeview-page-background-color: var(--editor-wiki-link-page-background-color);
+  --treeview-page-border-color: var(--treeview-page-background-color);
 
-    /* Style the default collapse/expand icon (.tree__collapse is the SPAN SortableTree adds) */
-    .tree__collapse {
-      color: var(--editor-command-button-color);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      /* Add size constraints */
-      width: var(--st-collapse-icon-width);
-      height: var(--st-collapse-icon-height);
-      /* Use ::before to add the SVG icon */
-      position: relative; /* Needed for pseudo-element positioning */
-    }
-    .tree__collapse::before {
-        content: ""; /* Clear default content if any */
-        display: inline-block;
-        width: 16px; /* Feather icon size */
-        height: 16px;
-        background-color: currentColor; /* Use text color for the icon */
-        -webkit-mask-repeat: no-repeat;
-        mask-repeat: no-repeat;
-        -webkit-mask-size: 100% 100%;
-        mask-size: 100% 100%;
-    }
+  /* Folder style */
+  --treeview-folder-color: var(--editor-wiki-link-page-missing-color); /* Or choose another color */
+  --treeview-folder-background-color: var(--treeview-page-background-color);
+  --treeview-folder-border-color: var(--treeview-page-background-color);
 
-    /* Icon for COLLAPSED state (chevron-right) - Targets the node */
-    sortable-tree-node:not([open]) > .tree__collapse::before {
-       /* Replace with your encoded chevron-right SVG */
-       -webkit-mask-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>');
-       mask-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>');
-    }
+  /* Tag style (Can be distinct or same as folder/page) */
+  --treeview-tag-color: var(--treeview-folder-color); /* Example: Same color as folder */
+  --treeview-tag-background-color: var(--treeview-page-background-color);
+  --treeview-tag-border-color: var(--treeview-page-border-color);
 
-    /* Icon for EXPANDED state (chevron-down) - Targets the node */
-    sortable-tree-node[open] > .tree__collapse::before {
-       /* Replace with your encoded chevron-down SVG */
-       -webkit-mask-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>');
-       mask-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>');
-    }
+}
 
-    /* Hide collapse icon if node has no children */
-    sortable-tree-node > div:nth-child(2):empty + .tree__collapse {
-       display: none; /* Keep this */
-    }
-    /* Hide collapse icon specifically for page nodes */
-    sortable-tree-node[data-node-type="page"] > .tree__collapse {
-         visibility: hidden; /* Keep space but hide icon */
-    }
+.treeview-root {
+  /* SortableTree variables */
+  --st-label-height: auto;
+  --st-subnodes-padding-left: 1.25rem;
+  --st-collapse-icon-height: 1.6em; /* Match line height roughly */
+  --st-collapse-icon-width: 1.25rem;
+  --st-collapse-icon-size: 1rem; /* Size of the icon itself */
+}
+
+/******************************************************************************
+ * Page & Scrolling Styles
+ *****************************************************************************/
+
+html, body {
+  background-color: var(--root-background-color);
+  padding: 0;
+  margin: 0;
+  height: 100%; /* Needed for child height % */
+  overflow: hidden; /* Prevent body scroll within iframe */
+}
+
+.treeview-root {
+  background-color: var(--root-background-color);
+  color: var(--root-color);
+  font-family: var(--ui-font);
+  /* Layout for scrolling */
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* Prevent root from scrolling */
+}
+
+/* Container for the actual tree, allows scrolling */
+#treeview-tree {
+  overflow-y: auto; /* Enable vertical scroll */
+  flex-grow: 1; /* Allow it to take remaining vertical space */
+  padding-bottom: 1rem; /* Space at the bottom */
+  margin-top: 0.25rem; /* Space below header */
+}
 
 
-    /* Add icons for node types using ::before on the inner span */
-    .tree__label > span::before {
-      display: inline-block;
-      margin-right: 5px;
-      vertical-align: -0.15em; /* Adjust alignment */
-      width: 1em; /* Icon width */
-      height: 1em; /* Icon height */
-      line-height: 1;
-      background-color: currentColor; /* Use text color */
-      content: ""; /* Clear default content */
-       -webkit-mask-repeat: no-repeat;
-       mask-repeat: no-repeat;
-       -webkit-mask-size: 100% 100%;
-       mask-size: 100% 100%;
-    }
+/******************************************************************************
+ * Header styles & Button Alignment Fix
+ *****************************************************************************/
+.treeview-header {
+  position: sticky; /* Keep header sticky */
+  top: 0;
+  z-index: 2;
+  padding: 0.5rem 0.5rem 0rem;
+  background-color: var(--root-background-color);
+  flex-shrink: 0; /* Prevent header from shrinking */
+}
 
-    /* Folder Icon */
-    .tree__label > span[data-node-type="folder"]::before {
-      /* Replace with your encoded folder SVG */
-      -webkit-mask-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>');
-      mask-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>');
-    }
+.treeview-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center; /* Vertically center buttons */
+  background-color: var(--editor-widget-background-color);
+  border: var(--top-border-color) 1px solid;
+  border-radius: 5px;
+  color: var(--top-color);
+  padding: 2px; /* Add slight padding */
+}
 
-    /* Tag Icon */
-    .tree__label > span[data-node-type="tag"]::before {
-      /* Replace with your encoded tag SVG */
-      -webkit-mask-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>');
-      mask-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>');
-    }
+.treeview-actions-left,
+.treeview-actions-right {
+  display: flex;
+  align-items: center; /* Vertically align buttons */
+}
 
-    /* Page (File) Icon */
-    .tree__label > span[data-node-type="page"]::before {
-      /* Replace with your encoded file-text SVG */
-      -webkit-mask-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>');
-      mask-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>');
-    }
+.treeview-actions-left {
+  flex: 1;
+  /* Removed flex-wrap: wrap; */
+}
 
-    /* --- Rest of CSS (.treeview-node-pagecount, hover effects, etc.) --- */
-    .treeview-node-pagecount {
-      font-size: 0.85em;
-      margin-left: 6px;
-      opacity: 0.7;
-      display: inline-block;
-      vertical-align: baseline;
-    }
+.treeview-actions button {
+  display: flex;
+  align-items: center;
+  /* Slightly reduced padding/margin */
+  margin: 2px;
+  padding: 4px;
+  background-color: var(--action-button-background-color);
+  border: 0;
+  color: var(--action-button-color);
+  cursor: pointer;
+}
 
-    .tree__label > span[data-node-type="tag"]:hover,
-    .tree__label > span[data-node-type="folder"]:hover,
-    .tree__label > span[data-node-type="page"]:hover {
-        background-color: var(--subtle-background-color);
-        border-color: var(--ui-accent-color);
-    }
-    
+.treeview-actions button:hover {
+  color: var(--action-button-hover-color);
+}
+
+.treeview-actions button:active {
+  color: var(--action-button-active-color);
+}
+
+.treeview-actions button > svg {
+  /* Slightly reduced icon size */
+  height: 16px;
+  width: 16px;
+}
+
+/******************************************************************************
+ * SortableTree styles & Icon Fixes
+ *****************************************************************************/
+
+.tree {
+	display: flex;
+	flex-direction: column;
+  /* Remove top/bottom margin, handled by #treeview-tree padding */
+  margin: 0 0.5rem;
+  padding-left: var(--st-subnodes-padding-left);
+}
+
+/* Collapse icon styling (Chevron using SVG mask) */
+.tree__collapse {
+  color: var(--editor-command-button-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--st-collapse-icon-width);
+  height: var(--st-collapse-icon-height);
+  position: relative; /* For pseudo-element */
+  cursor: pointer;
+}
+.tree__collapse::before {
+    content: "";
+    display: inline-block;
+    width: 16px; /* Icon size */
+    height: 16px;
+    background-color: currentColor; /* Icon color */
+    -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+    -webkit-mask-size: 100% 100%; mask-size: 100% 100%;
+}
+
+/* Icon for COLLAPSED state */
+sortable-tree-node:not([open]) > .tree__collapse::before {
+   -webkit-mask-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>');
+   mask-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>');
+}
+
+/* Icon for EXPANDED state */
+sortable-tree-node[open] > .tree__collapse::before {
+   -webkit-mask-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>');
+   mask-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>');
+}
+
+/* Hide collapse icon container if node has no children */
+sortable-tree-node > div:nth-child(2):empty + .tree__collapse {
+   visibility: hidden; /* Keep space but hide */
+}
+/* Also hide for page nodes */
+sortable-tree-node[data-node-type="page"] > .tree__collapse {
+     visibility: hidden;
+}
+
+
+.tree__label {
+  display: flex;
+  align-items: center; /* Align items vertically */
+  padding: 0; /* Remove padding, control with span */
+  position: relative;
+}
+
+/* General style for the node text container (span) - Reduced spacing */
+.tree__label > span {
+  overflow: hidden;
+  padding: 1px 5px; /* Reduced vertical padding */
+  border-color: transparent;
+  border-width: var(--treeview-node-border-width);
+  border-style: solid;
+  border-radius: var(--treeview-node-border-radius);
+  cursor: pointer;
+  font-family: var(--editor-font);
+  font-size: 15px;
+  line-height: 1.4; /* Adjusted line height */
+  text-decoration: none;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  display: inline-flex; /* Use inline-flex for alignment with icon */
+  align-items: center; /* Align icon and text */
+  margin-bottom: 1px; /* Reduced margin */
+  position: relative;
+}
+
+/* Add icons using ::before ONLY FOR PAGE NODES */
+.tree__label > span[data-node-type="page"]::before {
+  display: inline-block;
+  margin-right: 5px;
+  vertical-align: -0.1em; /* Fine-tune alignment */
+  width: 1em;
+  height: 1em;
+  line-height: 1;
+  background-color: currentColor;
+  content: "";
+  -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+  -webkit-mask-size: 100% 100%; mask-size: 100% 100%;
+  /* File Icon */
+  -webkit-mask-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>');
+  mask-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>');
+}
+
+/* REMOVED ::before rules for folder and tag */
+
+/* Specific node type background/color styling */
+.tree__label > span[data-node-type="folder"] {
+  background-color: var(--treeview-folder-background-color);
+  border-color: var(--treeview-folder-border-color);
+  color: var(--treeview-folder-color);
+}
+.tree__label > span[data-node-type="tag"] {
+  background-color: var(--treeview-tag-background-color);
+  border-color: var(--treeview-tag-border-color);
+  color: var(--treeview-tag-color);
+}
+.tree__label > span[data-node-type="page"] {
+  background-color: var(--treeview-page-background-color);
+  border-color: var(--treeview-page-border-color);
+  color: var(--treeview-page-color);
+}
+
+/* Style for the page count within the tag label */
+.treeview-node-pagecount {
+  font-size: 0.85em;
+  margin-left: 6px;
+  opacity: 0.6; /* Slightly more subtle */
+  display: inline-block;
+  vertical-align: baseline;
+  padding-left: 2px; /* Add slight space before count */
+}
+
+/* Hover effect */
+.tree__label > span[data-node-type="tag"]:hover,
+.tree__label > span[data-node-type="folder"]:hover,
+.tree__label > span[data-node-type="page"]:hover {
+    background-color: var(--subtle-background-color);
+    border-color: var(--ui-accent-color);
+}
+
+/* D&D styles (can be removed if desired) */
+.tree__node--drop-before > .tree__label:after { border-top-color: var(--ui-accent-color); }
+.tree__node--drop-after > .tree__label:after { border-bottom-color: var(--ui-accent-color); }
+.tree__node--dragging { margin: calc(var(--treeview-node-border-width) * -1); border: var(--treeview-node-border-width) dashed var(--subtle-color); border-radius: var(--treeview-node-border-radius); cursor: move !important; opacity: 0.75; }
+.tree__node--dragging .tree__label > span { opacity: 0.75; }
+.tree__node--drop-inside > .tree__label > span { z-index: 3; background-color: var(--subtle-background-color); border-color: var(--ui-accent-color); }
+/* End D&D styles */
