@@ -14,9 +14,9 @@ html {
   /* SortableTree variables */
   --st-label-height: auto;
   --st-subnodes-padding-left: 1.25rem;
-  --st-collapse-icon-height: 1.5em;
-  --st-collapse-icon-width: 1.25rem;
-  --st-collapse-icon-size: 1em;
+  --st-collapse-icon-height: 1.5em; /* Controls height of the icon container */
+  --st-collapse-icon-width: 1.25rem; /* Controls width of the icon container */
+  --st-collapse-icon-size: 1em; /* Might affect default icon size if library uses font-size */
 }
 
 /******************************************************************************
@@ -92,25 +92,9 @@ sortable-tree-node > div:nth-child(2) {
   min-height: 1.8em;
 }
 
-/* Collapse icon itself (chevron via SVG mask) */
-.tree__collapse::before {
-    content: "";
-    display: inline-block;
-    width: var(--st-collapse-icon-size);
-    height: var(--st-collapse-icon-size);
-    background-color: var(--treeview-icon-color);
-    -webkit-mask-repeat: no-repeat;
-    mask-repeat: no-repeat;
-    -webkit-mask-size: contain;
-    mask-size: contain;
-    -webkit-mask-position: center;
-    mask-position: center;
-    position: absolute;
-}
-
-/* Collapse icon container */
+/* Collapse icon container - Provided by SortableTree library */
 .tree__collapse {
-  color: var(--treeview-icon-color) !important; /* Override transparent */
+  /* Keep positioning and sizing */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -119,53 +103,24 @@ sortable-tree-node > div:nth-child(2) {
   flex-shrink: 0;
   cursor: pointer;
   opacity: 0.7;
-  position: relative;
+  position: relative; /* Maintain relative positioning if needed */
 }
-
 
 .tree__collapse:hover { opacity: 1; }
 
-/* *** ADD THIS RULE TO HIDE THE DEFAULT SVG *** */
-/* Style the default SVG icons */
+/* Style the SVG icon injected by the library */
 .tree__collapse > svg {
-    display: none; /* Hide without !important, which allows other rules to override */
-}
-/* ******************************************* */
-
-
-/* Collapse icon itself (chevron via SVG mask) */
-/* For custom SVG via mask */
-.tree__collapse::before {
-  content: "";
-  display: block;
-  width: var(--st-collapse-icon-size);
-  height: var(--st-collapse-icon-size);
-  background-color: var(--treeview-icon-color);
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-  -webkit-mask-position: center;
-  mask-position: center;
-  -webkit-mask-size: contain;
-  mask-size: contain;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+    /* display: block; /* Ensure SVG is displayed (remove the old display: none) */
+    width: var(--st-collapse-icon-size); /* Control size */
+    height: var(--st-collapse-icon-size); /* Control size */
+    stroke: var(--treeview-icon-color); /* Control color */
 }
 
-/* Chevron Right Icon for COLLAPSED state */
-sortable-tree-node:not([open]) > .tree__label > .tree__collapse::before,
-sortable-tree-node:not([open]) > .tree__collapse::before {
-   -webkit-mask-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>');
-   mask-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>');
-}
+/* REMOVE ALL ::before rules for .tree__collapse */
+/* .tree__collapse::before { ... } */
+/* sortable-tree-node:not([open]) > .tree__label > .tree__collapse::before, ... */
+/* sortable-tree-node[open] > .tree__label > .tree__collapse::before, ... */
 
-/* Chevron Down Icon for EXPANDED state */
-sortable-tree-node[open] > .tree__label > .tree__collapse::before,
-sortable-tree-node[open] > .tree__collapse::before {
-   -webkit-mask-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>');
-   mask-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>');
-}
 /* Hide collapse icon container if node has no children or is page */
 sortable-tree-node > div:nth-child(2):empty + span.tree__collapse,
 sortable-tree-node[data-node-type="page"] > span.tree__collapse,
@@ -196,7 +151,7 @@ sortable-tree-node[data-node-type="page"] > div:first-child > span.tree__collaps
   min-width: 0;
 }
 
-/* Add icons using ::before ONLY FOR PAGE NODES */
+/* Add icons using ::before ONLY FOR PAGE NODES (Keep this part) */
 .tree__label > span[data-node-type="page"]::before {
   display: inline-block; margin-right: 6px; vertical-align: -0.1em;
   width: 1em; height: 1em; line-height: 1; background-color: currentColor;
@@ -226,12 +181,11 @@ sortable-tree-node[data-node-type="page"] > div:first-child > span.tree__collaps
     border-color: var(--ui-accent-color);
 }
 
-/* D&D styles */
-/* ... (Keep or remove D&D styles) ... */
+/* D&D styles (Keep if D&D might be enabled later, otherwise remove) */
+/* ... */
 .tree__label:after { content: ' '; position: absolute; z-index: 4; inset: calc(var(--treeview-node-border-width) * -1) var(--treeview-node-border-width); border-top: calc(var(--treeview-node-border-width) * 2) solid transparent; border-bottom: calc(var(--treeview-node-border-width) * 2) solid transparent; transition: border-color 0.2s; pointer-events: none; }
 .tree__node--drop-before > .tree__label:after { border-top-color: var(--ui-accent-color); }
 .tree__node--drop-after > .tree__label:after { border-bottom-color: var(--ui-accent-color); }
 .tree__node--dragging { margin: calc(var(--treeview-node-border-width) * -1); border: var(--treeview-node-border-width) dashed var(--subtle-color); border-radius: var(--treeview-node-border-radius); cursor: move !important; opacity: 0.75; }
 .tree__node--dragging .tree__label > span { opacity: 0.75; }
 .tree__node--drop-inside > .tree__label > span { z-index: 3; background-color: var(--subtle-background-color); border-color: var(--ui-accent-color); }
-
