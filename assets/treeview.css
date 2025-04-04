@@ -5,31 +5,24 @@
 html {
   --treeview-node-border-width: 2px;
   --treeview-node-border-radius: 5px;
-
-  /* Page style (used for actual page nodes now) */
   --treeview-page-color: var(--editor-wiki-link-page-color);
   --treeview-page-background-color: var(--editor-wiki-link-page-background-color);
   --treeview-page-border-color: var(--treeview-page-background-color);
-
-  /* Folder style */
-  --treeview-folder-color: var(--editor-wiki-link-page-missing-color); /* Or choose another color */
+  --treeview-folder-color: var(--editor-wiki-link-page-missing-color);
   --treeview-folder-background-color: var(--treeview-page-background-color);
   --treeview-folder-border-color: var(--treeview-page-background-color);
-
-  /* Tag style (Can be distinct or same as folder/page) */
-  --treeview-tag-color: var(--treeview-folder-color); /* Example: Same color as folder */
+  --treeview-tag-color: var(--treeview-folder-color);
   --treeview-tag-background-color: var(--treeview-page-background-color);
   --treeview-tag-border-color: var(--treeview-page-border-color);
-
 }
 
 .treeview-root {
   /* SortableTree variables */
-  --st-label-height: auto;
+  --st-label-height: auto; /* Allow label height to adjust */
   --st-subnodes-padding-left: 1.25rem;
-  --st-collapse-icon-height: 1.6em; /* Match line height roughly */
+  --st-collapse-icon-height: 1.5em; /* Base height on font size */
   --st-collapse-icon-width: 1.25rem;
-  --st-collapse-icon-size: 1rem; /* Size of the icon itself */
+  --st-collapse-icon-size: 1em; /* Base icon size on font size */
 }
 
 /******************************************************************************
@@ -40,25 +33,24 @@ html, body {
   background-color: var(--root-background-color);
   padding: 0;
   margin: 0;
-  height: 100%; /* Needed for child height % */
-  overflow: hidden; /* Prevent body scroll within iframe */
+  height: 100%;
+  overflow: hidden; /* Prevent body scroll */
 }
 
 .treeview-root {
   background-color: var(--root-background-color);
   color: var(--root-color);
   font-family: var(--ui-font);
-  /* Layout for scrolling */
   height: 100%;
   display: flex;
   flex-direction: column;
-  overflow: hidden; /* Prevent root from scrolling */
+  overflow: hidden; /* Prevent root scroll */
 }
 
-/* Container for the actual tree, allows scrolling */
+/* Container for the actual tree, enables scrolling */
 #treeview-tree {
   overflow-y: auto; /* Enable vertical scroll */
-  flex-grow: 1; /* Allow it to take remaining vertical space */
+  flex-grow: 1; /* Take remaining vertical space */
   padding-bottom: 1rem; /* Space at the bottom */
   margin-top: 0.25rem; /* Space below header */
 }
@@ -68,58 +60,58 @@ html, body {
  * Header styles & Button Alignment Fix
  *****************************************************************************/
 .treeview-header {
-  position: sticky; /* Keep header sticky */
+  position: sticky;
   top: 0;
   z-index: 2;
-  padding: 0.5rem 0.5rem 0rem;
+  padding: 0.3rem 0.5rem 0.1rem; /* Slightly reduced padding */
   background-color: var(--root-background-color);
-  flex-shrink: 0; /* Prevent header from shrinking */
+  flex-shrink: 0;
 }
 
 .treeview-actions {
   display: flex;
   justify-content: space-between;
-  align-items: center; /* Vertically center buttons */
+  align-items: center; /* Vertically center */
   background-color: var(--editor-widget-background-color);
   border: var(--top-border-color) 1px solid;
   border-radius: 5px;
   color: var(--top-color);
-  padding: 2px; /* Add slight padding */
+  padding: 2px 3px; /* Reduced padding */
 }
 
 .treeview-actions-left,
 .treeview-actions-right {
   display: flex;
-  align-items: center; /* Vertically align buttons */
+  align-items: center;
 }
 
 .treeview-actions-left {
-  flex: 1;
-  /* Removed flex-wrap: wrap; */
+  flex-grow: 1; /* Allow left side to grow */
+  flex-wrap: nowrap; /* Prevent wrapping */
 }
 
+.treeview-actions-right {
+  flex-shrink: 0; /* Prevent right side from shrinking */
+}
+
+
 .treeview-actions button {
-  display: flex;
+  display: inline-flex; /* Use inline-flex */
   align-items: center;
-  /* Slightly reduced padding/margin */
-  margin: 2px;
-  padding: 4px;
+  justify-content: center;
+  margin: 1px 2px; /* Reduced margin */
+  padding: 3px; /* Reduced padding */
   background-color: var(--action-button-background-color);
   border: 0;
   color: var(--action-button-color);
   cursor: pointer;
+  flex-shrink: 0; /* Prevent buttons from shrinking */
 }
 
-.treeview-actions button:hover {
-  color: var(--action-button-hover-color);
-}
-
-.treeview-actions button:active {
-  color: var(--action-button-active-color);
-}
+.treeview-actions button:hover { color: var(--action-button-hover-color); }
+.treeview-actions button:active { color: var(--action-button-active-color); }
 
 .treeview-actions button > svg {
-  /* Slightly reduced icon size */
   height: 16px;
   width: 16px;
 }
@@ -131,9 +123,8 @@ html, body {
 .tree {
 	display: flex;
 	flex-direction: column;
-  /* Remove top/bottom margin, handled by #treeview-tree padding */
-  margin: 0 0.5rem;
-  padding-left: var(--st-subnodes-padding-left);
+  margin: 0 0.5rem; /* Remove top/bottom margin */
+  padding-left: 0; /* Let SortableTree handle internal padding */
 }
 
 /* Collapse icon styling (Chevron using SVG mask) */
@@ -144,15 +135,17 @@ html, body {
   justify-content: center;
   width: var(--st-collapse-icon-width);
   height: var(--st-collapse-icon-height);
-  position: relative; /* For pseudo-element */
+  position: relative;
   cursor: pointer;
+  font-size: 0; /* Hide potential text content */
 }
 .tree__collapse::before {
     content: "";
     display: inline-block;
-    width: 16px; /* Icon size */
-    height: 16px;
-    background-color: currentColor; /* Icon color */
+    width: 1em; /* Use em for sizing relative to parent */
+    height: 1em;
+    font-size: var(--st-collapse-icon-size); /* Control size */
+    background-color: currentColor;
     -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
     -webkit-mask-size: 100% 100%; mask-size: 100% 100%;
 }
@@ -171,7 +164,7 @@ sortable-tree-node[open] > .tree__collapse::before {
 
 /* Hide collapse icon container if node has no children */
 sortable-tree-node > div:nth-child(2):empty + .tree__collapse {
-   visibility: hidden; /* Keep space but hide */
+   visibility: hidden;
 }
 /* Also hide for page nodes */
 sortable-tree-node[data-node-type="page"] > .tree__collapse {
@@ -181,9 +174,10 @@ sortable-tree-node[data-node-type="page"] > .tree__collapse {
 
 .tree__label {
   display: flex;
-  align-items: center; /* Align items vertically */
-  padding: 0; /* Remove padding, control with span */
+  align-items: center; /* Align icon/text vertically */
+  padding: 0; /* Control padding via span */
   position: relative;
+  min-height: var(--st-collapse-icon-height); /* Ensure label area is tall enough */
 }
 
 /* General style for the node text container (span) - Reduced spacing */
@@ -201,7 +195,7 @@ sortable-tree-node[data-node-type="page"] > .tree__collapse {
   text-decoration: none;
   white-space: nowrap;
   text-overflow: ellipsis;
-  display: inline-flex; /* Use inline-flex for alignment with icon */
+  display: inline-flex; /* Use inline-flex for alignment */
   align-items: center; /* Align icon and text */
   margin-bottom: 1px; /* Reduced margin */
   position: relative;
@@ -212,8 +206,8 @@ sortable-tree-node[data-node-type="page"] > .tree__collapse {
   display: inline-block;
   margin-right: 5px;
   vertical-align: -0.1em; /* Fine-tune alignment */
-  width: 1em;
-  height: 1em;
+  width: 1em; /* Icon width */
+  height: 1em; /* Icon height */
   line-height: 1;
   background-color: currentColor;
   content: "";
@@ -247,10 +241,10 @@ sortable-tree-node[data-node-type="page"] > .tree__collapse {
 .treeview-node-pagecount {
   font-size: 0.85em;
   margin-left: 6px;
-  opacity: 0.6; /* Slightly more subtle */
+  opacity: 0.6;
   display: inline-block;
   vertical-align: baseline;
-  padding-left: 2px; /* Add slight space before count */
+  padding-left: 2px;
 }
 
 /* Hover effect */
