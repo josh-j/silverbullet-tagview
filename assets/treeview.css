@@ -241,3 +241,59 @@ sortable-tree-node > :nth-child(2):empty + .tree__collapse {
     background-color: var(--subtle-background-color); /* Example hover */
     border-color: var(--ui-accent-color); /* Example hover */
 }
+
+/* Add towards the end of the file */
+
+/* Style for the main label span content */
+.tree__label > span {
+  /* display: flex; */ /* Uncomment if you want to use flexbox for alignment within the span */
+  /* align-items: center; */
+}
+
+/* Add icons using ::before */
+.tree__label > span::before {
+  display: inline-block; /* Allows margin */
+  margin-right: 6px;   /* Space between icon and text */
+  font-size: 1em;      /* Adjust icon size */
+  vertical-align: middle; /* Try to align icon with text */
+  width: 1.2em; /* Reserve some width */
+  text-align: center;
+}
+
+.tree__label > span[data-node-type="folder"]::before {
+  content: "📁"; /* Unicode Folder icon */
+  /* Or use an SVG: content: url('data:image/svg+xml,...'); */
+}
+
+.tree__label > span[data-node-type="tag"]::before {
+  content: "🏷️"; /* Unicode Tag icon */
+  /* Or use an SVG */
+}
+
+/* Optional: Hide the default SortableTree collapse icon if using folder icons */
+.tree__collapse {
+  /* display: none; */ /* Uncomment this if the default triangle overlaps badly */
+}
+
+/* Adjust tree padding if default collapse icon is hidden */
+/* .tree {
+  padding-left: 0.5rem; /* Adjust as needed if hiding .tree__collapse */
+/* } */
+
+
+
+/* Add towards the end */
+.treeview-fullpath-detail {
+  display: block; /* Attempt to put it on its own line */
+  font-size: 0.8em;
+  opacity: 0.7;
+  margin-left: 0; /* Override potential inherited margins */
+  /* You might need more specific CSS to get exact positioning */
+  white-space: normal; /* Allow path to wrap if long */
+}
+
+/* Adjust main span padding if needed */
+.tree__label > span {
+    padding-top: 4px;
+    padding-bottom: 4px;
+}
