@@ -92,9 +92,25 @@ sortable-tree-node > div:nth-child(2) {
   min-height: 1.8em;
 }
 
+/* Collapse icon itself (chevron via SVG mask) */
+.tree__collapse::before {
+    content: "";
+    display: block;
+    width: 1em;
+    height: 1em;
+    font-size: var(--st-collapse-icon-size);
+    background-color: var(--treeview-icon-color);
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+}
+
 /* Collapse icon container */
 .tree__collapse {
-  color: transparent !important; /* Hide original icon color */
+  color: var(--treeview-icon-color) !important; /* Override transparent */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -102,10 +118,11 @@ sortable-tree-node > div:nth-child(2) {
   height: var(--st-collapse-icon-height);
   flex-shrink: 0;
   cursor: pointer;
-  font-size: 0; /* Hide potential text content */
   opacity: 0.7;
   position: relative;
 }
+
+
 .tree__collapse:hover { opacity: 1; }
 
 /* *** ADD THIS RULE TO HIDE THE DEFAULT SVG *** */
