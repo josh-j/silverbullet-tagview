@@ -1,68 +1,125 @@
 import { editor, system } from "@silverbulletmd/silverbullet/syscalls";
+// PageMeta might not be directly needed anymore, but keep types for NodeData etc.
 import { PageMeta } from "@silverbulletmd/silverbullet/types";
-import { PLUG_DISPLAY_NAME, TagTreeViewConfig } from "./config.ts"; // Import new config type
+import { PLUG_DISPLAY_NAME, TagTreeViewConfig } from "./config.ts";
 
-// Define NodeData structure for Tags (assuming this is defined above as before)
+// Define the expected structure of objects returned by index.queryObjects("tag",...)
+// Note: The exact fields might vary slightly based on SilverBullet version/indexing.
+interface TagIndexEntry {
+  name: string; // The tag name (e.g., "cs/lang/meta")
+  page: string; // The page the tag appears on
+  pos?: number; // Position (optional)
+  // Potentially other fields...
+}
+
+// NodeData, TagData, FolderData, TreeNode definitions remain the same
 export type NodeData = {
   name: string;
   title: string;
-  nodeType: string;
+  nodeType: "folder" | "tag";
   pageCount?: number;
 };
-export type TagData = NodeData & { nodeType: "tag"; };
-export type TreeNode = { data: TagData; nodes: TreeNode[]; };
-
+export type TagData = NodeData & { nodeType: "tag"; pageCount: number };
+export type FolderData = NodeData & { nodeType: "folder" };
+export type TreeNode = { data: TagData | FolderData; nodes: TreeNode[]; };
 
 /**
- * Generates a TreeNode array based on unique tags found in the space
- * by querying all pages and extracting their tags.
+ * Generates a hierarchical TreeNode array based on tags with '/' separators,
+ * fetching data using index.queryObjects("tag", ...).
  */
 export async function getTagTree(config: TagTreeViewConfig): Promise<{ nodes: TreeNode[] }> {
-  // Fetch ALL page objects using index.queryObjects
-  const pages: PageMeta[] = await system.invokeFunction(
-    "index.queryObjects",
-    "page", // Type of object to query
-    {}      // No specific query filters needed, get all pages
-  );
+  // --- Step 1: Fetch tag index entries ---
+  let tagIndexEntries: TagIndexEntry[] = [];
+  try {
+     tagIndexEntries = await system.invokeFunction(
+      "index.queryObjects",
+      "tag", // Query for tag index objects
+      {}     // No specific filters needed
+    );
+  } catch (e) {
+      console.error("Failed to fetch tags via index.queryObjects('tag',...):", e);
+      // Optionally show a notification to the user
+      editor.flashNotification(`Error fetching tags: ${e.message}`, "error");
+      return { nodes: [] }; // Return empty tree on error
+  }
 
-  const tagCounts: Record<string, number> = {};
 
-  // Iterate through all pages fetched
-  for (const page of pages) {
-    // Extract tags from common tag attributes (tags, itags)
-    // You might need to adjust this based on where tags are stored in your PageMeta
-    const pageTags: string[] = [
-      ...(Array.isArray(page.tags) ? page.tags : typeof page.tags === 'string' ? [page.tags] : []),
-      ...(Array.isArray(page.itags) ? page.itags : typeof page.itags === 'string' ? [page.itags] : []),
-      // Add other potential tag attributes if necessary (e.g., page.data?.tags)
-    ].filter(tag => typeof tag === 'string' && tag); // Ensure they are strings and not empty
+  // --- Step 2: Process entries to get unique tags and unique page counts per tag ---
+  // Map: tagName -> Set<pageName>
+  const tagPageMap = new Map<string, Set<string>>();
 
-    const uniquePageTags = new Set(pageTags); // Count each tag only once per page
-
-    for (const tagName of uniquePageTags) {
-      if (tagName) { // Ensure tag name is not empty
-        tagCounts[tagName] = (tagCounts[tagName] || 0) + 1;
+  for (const entry of tagIndexEntries) {
+    // Ensure entry has valid name and page
+    if (entry && typeof entry.name === 'string' && entry.name && typeof entry.page === 'string' && entry.page) {
+      if (!tagPageMap.has(entry.name)) {
+        tagPageMap.set(entry.name, new Set<string>());
       }
+      tagPageMap.get(entry.name)!.add(entry.page);
+    } else {
+        console.warn("Skipping invalid tag index entry:", entry);
     }
   }
 
-  // Get unique tag names and sort them
-  const uniqueTags = Object.keys(tagCounts).sort((a, b) =>
-    a.localeCompare(b)
-  );
+  // Calculate counts based on the size of the page sets
+  const tagCounts: Record<string, number> = {};
+  const uniqueTags: string[] = [];
+  for (const [tagName, pageSet] of tagPageMap.entries()) {
+    tagCounts[tagName] = pageSet.size;
+    uniqueTags.push(tagName);
+  }
 
-  // Create the TreeNode structure (flat list)
-  const rootNodes: TreeNode[] = uniqueTags.map((tag) => ({
-    data: {
-      name: tag,
-      title: tag, // For tags, name and title are the same
-      nodeType: "tag",
-      pageCount: tagCounts[tag], // Include the count
-    },
-    nodes: [], // No children in a flat list
-  }));
+  // Sort unique tags alphabetically
+  uniqueTags.sort((a, b) => a.localeCompare(b));
+
+
+  // --- Step 3: Build the hierarchical tree (same logic as before) ---
+  const root: { nodes: TreeNode[] } = { nodes: [] };
+
+  uniqueTags.forEach((tag) => {
+    const parts = tag.split("/");
+    parts.reduce((parent, title, currentIndex) => {
+      const currentPath = parts.slice(0, currentIndex + 1).join("/");
+      const isLeafNode = currentIndex === parts.length - 1;
+
+      let node = parent.nodes.find((child) => child.data.title === title);
+
+      if (node) {
+        if (isLeafNode && node.data.nodeType === "folder") {
+          node.data = {
+            ...node.data,
+            nodeType: "tag",
+            pageCount: tagCounts[tag], // Use calculated count
+          };
+        }
+        return node;
+      }
+
+      // Node doesn't exist, create it
+      const newNodeData: NodeData = isLeafNode
+        ? { // Tag node
+            name: currentPath,
+            title: title,
+            nodeType: "tag",
+            pageCount: tagCounts[tag], // Use calculated count
+          }
+        : { // Folder node
+            name: currentPath,
+            title: title,
+            nodeType: "folder",
+          };
+
+      node = {
+          data: newNodeData,
+          nodes: [],
+      };
+
+      parent.nodes.push(node);
+      parent.nodes.sort((a,b) => a.data.title.localeCompare(b.data.title));
+      return node;
+    }, root);
+  });
 
   return {
-    nodes: rootNodes,
+    nodes: root.nodes,
   };
 }
