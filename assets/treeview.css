@@ -19,15 +19,21 @@
   --treeview-current-page-border-color: var(--treeview-page-border-color);
 }
 
+/* --- In assets/treeview.css --- */
+
 .treeview-root {
   /* SortableTree variables */
   --st-label-height: auto;
-  --st-subnodes-padding-left: 1.25rem;
-  --st-collapse-icon-height: 1rem;
-  --st-collapse-icon-width: 1rem;
-  --st-collapse-icon-size: 0.9rem;
-}
+  --st-subnodes-padding-left: 1.25rem; /* Adjust padding if needed after resize */
 
+  /* --- Make icons smaller by reducing variable values --- */
+  --st-collapse-icon-height: 12px;  /* New smaller height (adjust as needed) */
+  --st-collapse-icon-width: 12px;   /* New smaller width (adjust as needed) */
+
+  /* You might not need --st-collapse-icon-size if width/height are set directly */
+  /* Or adjust this too if it has an effect, e.g., --st-collapse-icon-size: 12px; */
+  --st-collapse-icon-size: 12px;
+}
 /******************************************************************************
  * Page styles
  *****************************************************************************/
