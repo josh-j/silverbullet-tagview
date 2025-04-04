@@ -45,7 +45,7 @@ export async function showTreeIfEnabled() {
 }
 
 /**
- * Shows the hierarchical tag treeview with the corrected header appearance.
+ * Shows the hierarchical tag treeview with chevron icons in the header.
  */
 export async function showTree() {
   const config: TagTreeViewConfig = await getPlugConfig(); // Use your config type
@@ -55,7 +55,8 @@ export async function showTree() {
   }
 
   // Fetch necessary assets, ensuring all icons are loaded
-  let iconFolderMinus: string, iconFolderPlus: string, iconNavigation2: string, iconRefresh: string, iconXCircle: string;
+  // Renamed variables for clarity
+  let iconChevronDown: string, iconChevronRight: string, iconNavigation2: string, iconRefresh: string, iconXCircle: string;
   try {
       [
         // CSS and JS first
@@ -64,8 +65,8 @@ export async function showTree() {
         const plugCss, // Should be treeview_css_final_appearance content
         const plugJs, // Should be treeview_js_final_appearance content
         // Icons
-        iconFolderMinus, // Icon for Collapse All
-        iconFolderPlus, // Icon for Expand All
+        iconChevronRight, // Use chevron-right for Collapse All
+        iconChevronDown,  // Use chevron-down for Expand All
         iconNavigation2, // Icon for Reveal Current Page
         iconRefresh, // Icon for Refresh
         iconXCircle, // Icon for Close
@@ -78,8 +79,8 @@ export async function showTree() {
         asset.readAsset(PLUG_NAME, "assets/treeview.css"),
         asset.readAsset(PLUG_NAME, "assets/treeview.js"),
         // Icons (ensure paths are correct in your plug)
-        asset.readAsset(PLUG_NAME, "assets/icons/folder-minus.svg"),
-        asset.readAsset(PLUG_NAME, "assets/icons/folder-plus.svg"),
+        asset.readAsset(PLUG_NAME, "assets/icons/chevron-right.svg"), // Load chevron-right
+        asset.readAsset(PLUG_NAME, "assets/icons/chevron-down.svg"), // Load chevron-down
         asset.readAsset(PLUG_NAME, "assets/icons/navigation-2.svg"),
         asset.readAsset(PLUG_NAME, "assets/icons/refresh-cw.svg"),
         asset.readAsset(PLUG_NAME, "assets/icons/x-circle.svg"),
@@ -106,7 +107,7 @@ export async function showTree() {
       await editor.showPanel(
         config.position,
         config.size,
-        // Panel HTML - Ensure all buttons use the loaded icon variables
+        // Panel HTML - Use chevron icons for expand/collapse buttons
         `
           <link rel="stylesheet" href="/.client/main.css" />
           <style>
@@ -118,8 +119,8 @@ export async function showTree() {
             <div class="treeview-header">
               <div class="treeview-actions">
                 <div class="treeview-actions-left">
-                  <button type="button" data-treeview-action="expand-all" title="Expand all">${iconFolderPlus}</button>
-                  <button type="button" data-treeview-action="collapse-all" title="Collapse all">${iconFolderMinus}</button>
+                  <button type="button" data-treeview-action="expand-all" title="Expand all">${iconChevronDown}</button>
+                  <button type="button" data-treeview-action="collapse-all" title="Collapse all">${iconChevronRight}</button>
                   <button type="button" data-treeview-action="reveal-current-page" title="Reveal current page">${iconNavigation2}</button>
                   <button type="button" data-treeview-action="refresh" title="Refresh treeview">${iconRefresh}</button>
                 </div>
