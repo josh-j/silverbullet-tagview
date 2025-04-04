@@ -122,12 +122,12 @@ sortable-tree-node > div:nth-child(2) {
 /* sortable-tree-node[open] > .tree__label > .tree__collapse::before, ... */
 
 /* Hide collapse icon container if node has no children or is page */
-sortable-tree-node > div:nth-child(2):empty + span.tree__collapse,
-sortable-tree-node[data-node-type="page"] > span.tree__collapse,
-sortable-tree-node[data-node-type="page"] > div:first-child > span.tree__collapse
-{
-   visibility: hidden;
-}
+/* sortable-tree-node > div:nth-child(2):empty + span.tree__collapse, */
+/* sortable-tree-node[data-node-type="page"] > span.tree__collapse, */
+/* sortable-tree-node[data-node-type="page"] > div:first-child > span.tree__collapse */
+/* { */
+   /* visibility: hidden; */
+/* } */
 
 
 /* Node Content Span (Text, Icon, Count) */
