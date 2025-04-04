@@ -1,90 +1,80 @@
 /**
- * @typedef {import("../api.ts").TagData} TagData // Use TagData type from api.ts
+ * @typedef {import("../api.ts").NodeData} NodeData // Use base NodeData type
  */
 
 /**
- * Represents a node in the SortableTree specific to tags.
- * @typedef SortableTagTreeNode
+ * Represents a node in the SortableTree (tag or folder).
+ * @typedef SortableTreeNode
  * @type {Object}
- * @property {TagData} data - The tag data associated with the node.
+ * @property {NodeData} data - The tag or folder data.
  */
 
 /**
- * Configuration for the Tag TreeView panel.
+ * Configuration for the Hierarchical Tag TreeView panel.
  * @typedef TagTreeViewJsConfig
  * @type {Object}
- * @property {Array<{data: TagData, nodes: []}>} nodes - A flat list of tag nodes.
- * @property {string} treeElementId - The ID of the HTML element to render the tree in.
- * @property {Object} dragAndDrop - Drag and drop configuration (should be disabled).
- * @property {boolean} dragAndDrop.enabled - Should always be false for tags.
+ * @property {Array<{data: NodeData, nodes: Array}>} nodes - A tree of tag/folder nodes.
+ * @property {string} treeElementId - The ID of the HTML element.
+ * @property {Object} dragAndDrop - Should still be disabled.
+ * @property {boolean} dragAndDrop.enabled - False.
  */
 
 
-const TREE_STATE_ID = "treeview"; // Keep state ID, though collapse state less relevant for flat list
+const TREE_STATE_ID = "treeview"; // State ID relevant for collapse/expand
 
 /**
- * Initializes the Tag TreeView's `SortableTree` instance.
+ * Initializes the Hierarchical Tag TreeView's `SortableTree` instance.
  * @param {TagTreeViewJsConfig} config
  * @returns {SortableTree}
  */
 function createTagTreeView(config) {
-  // Note: SortableTree might still add D&D classes/attributes even if disabled.
-  // The key is that the handlers (`confirm`) are removed and `disableSorting` is true.
   return new SortableTree({
-    nodes: config.nodes, // Use the flat list of tag nodes
-    disableSorting: true, // Disable sorting/D&D for tags
+    nodes: config.nodes,
+    disableSorting: true, // Keep D&D disabled
     element: document.getElementById(config.treeElementId),
-    stateId: TREE_STATE_ID, // Keep for potential future use (e.g., remembering scroll)
-    initCollapseLevel: 0, // Not very relevant for a flat list
-    lockRootLevel: true, // Root cannot be targeted (good practice)
+    stateId: TREE_STATE_ID, // State now relevant for collapse/expand
+    initCollapseLevel: 1, // Start with only root nodes expanded (adjust as needed)
+    lockRootLevel: true,
 
-    /**
-     * @param {SortableTagTreeNode} movedNode
-     * @param {SortableTagTreeNode} targetParentNode
-     */
-    // REMOVED: confirm handler - D&D is not applicable for tags in this view.
-    // confirm: async (movedNode, targetParentNode) => { ... },
+    // No 'confirm' handler needed
 
-    // onChange is likely not needed without D&D or hierarchy, but harmless.
-    // It triggers a refresh if node state changes (e.g., collapse, though unlikely here).
+    // onChange can be useful for saving state if nodes are collapsed/expanded
     onChange: async () => {
-      // Optional: Could remove if performance is critical and no state changes expected.
-      // await syscall("system.invokeFunction", "treeview.show");
+       // This will trigger a full refresh, potentially saving the collapse state
+       // via the SortableTree's state saving mechanism (if enabled and working).
+       // Consider if this refresh is too disruptive or if a more targeted state save is needed.
+       await syscall("system.invokeFunction", "treeview.show");
     },
 
     /**
-     * Handles clicking on a tag node.
+     * Handles clicking on a node (tag or folder).
      * @param {Event} _event
-     * @param {SortableTagTreeNode} node
+     * @param {SortableTreeNode} node
      */
     onClick: async (_event, node) => {
-      // Navigate to a query for the clicked tag
-      console.log("Tag clicked:", node.data.name);
-      // Use query.set to change the main query bar and filter
-      await syscall("editor.runCommand", "query.set", `tag: ${node.data.name}`);
-      // Alternative: Trigger a search in the search panel
-      // await syscall("editor.runCommand", "search.search", `tag:${node.data.name}`);
+      // Only run the query if it's an actual 'tag' node.
+      // Clicking a 'folder' node should just toggle it (handled by SortableTree's default behavior on the collapse icon).
+      if (node.data.nodeType === 'tag') {
+        console.log("Tag clicked:", node.data.name);
+        await syscall("editor.runCommand", "query.set", `tag:${node.data.name}`);
+      } else {
+        console.log("Folder clicked:", node.data.name);
+        // If you want clicking anywhere on the folder label (not just the icon) to toggle it:
+        node.toggle();
+      }
     },
 
     /**
-     * Renders the label HTML for a tag node.
-     * @param {TagData} data - The data for the tag node.
+     * Renders the label HTML for a tag or folder node.
+     * @param {NodeData} data - The data for the node.
      * @returns {string}
      */
     renderLabel: (data) => {
-      // data.name = Full tag name (e.g., "project/alpha")
-      // data.title = Display name (same as name for tags)
-      // data.nodeType = "tag"
-      // data.pageCount = Number of pages with this tag (optional, from backend)
-
-      // Removed data-current-page (not applicable)
-      // Removed data-permission (assuming 'perm' is not on TagData)
-      // Added data-node-type="tag"
-      // Added page count display if available
-      const pageCountHtml = typeof data.pageCount === 'number'
+      const pageCountHtml = data.nodeType === 'tag' && typeof data.pageCount === 'number'
         ? `<span class="treeview-node-pagecount">(${data.pageCount})</span>`
-        : '';
+        : ''; // Only show count for tags
 
+      // Use data.title for display, data.name for tooltip (full path)
       return `
         <span
           data-node-type="${data.nodeType}"
@@ -101,49 +91,58 @@ function createTagTreeView(config) {
  */
 // deno-lint-ignore no-unused-vars
 function initializeTreeViewPanel(config) {
-  // Ensure dragAndDrop is explicitly disabled in the config passed from main.ts
-  config.dragAndDrop = { enabled: false };
-
-  const tree = createTagTreeView(config); // Call the renamed creation function
+  config.dragAndDrop = { enabled: false }; // Ensure D&D is disabled
+  const tree = createTagTreeView(config);
 
   const handleAction = (action) => {
     switch (action) {
-      // REMOVED: collapse-all (not applicable to flat list)
-      // case "collapse-all": { ... }
-      // REMOVED: expand-all (not applicable to flat list)
-      // case "expand-all": { ... }
+      // Handle expand/collapse all actions
+       case "collapse-all": {
+         // Target all nodes that are open AND have subnodes (folders)
+         document.querySelectorAll("sortable-tree-node[open='true']").forEach((node) => {
+             // Check if the subnodes container (second child div) is not empty
+             if (node.children[1] && node.children[1].children.length > 0) {
+                 node.collapse(true);
+             }
+         });
+         return true;
+       }
+       case "expand-all": {
+         // Target all nodes that are not open AND have subnodes (folders)
+         document.querySelectorAll("sortable-tree-node:not([open='true'])").forEach((node) => {
+             // Check if the subnodes container (second child div) is not empty
+             if (node.children[1] && node.children[1].children.length > 0) {
+                node.collapse(false);
+             }
+         });
+         return true;
+       }
       case "close-panel": {
-        syscall("system.invokeFunction", "treeview.hide"); // Use configured plug name's functions
+        syscall("system.invokeFunction", "treeview.hide");
         return true;
       }
       case "refresh": {
-        // Clear saved state before refreshing to avoid issues if node list changes significantly
+        // Clear state before refresh to ensure tree rebuilds visually if structure changed
+        // Note: This might clear user's collapse/expand preferences for this session.
         tree.clearState();
-        syscall("system.invokeFunction", "treeview.show"); // Use configured plug name's functions
+        syscall("system.invokeFunction", "treeview.show");
         return true;
       }
-      // REMOVED: reveal-current-page (not applicable)
-      // case "reveal-current-page": { ... }
     }
     return false;
   }
 
-  // REMOVED: Initial call to handleAction("reveal-current-page");
-
-  // Add listeners only to the buttons that still exist (refresh, close-panel)
+  // Add listeners for all potential actions defined in the HTML
   document.querySelectorAll("[data-treeview-action]").forEach((el) => {
     const action = el.dataset["treeviewAction"];
-    // Only attach listener if the action is still handled
-    if (action === "refresh" || action === "close-panel") {
+    // Attach listener if the action is handled
+    if (["refresh", "close-panel", "collapse-all", "expand-all"].includes(action)) {
       el.addEventListener("click", (e) => {
         if (handleAction(action)) {
           e.stopPropagation();
           e.preventDefault();
         }
       });
-    } else {
-      // Optional: Hide or remove buttons for unsupported actions
-      // el.style.display = 'none';
     }
   });
 }

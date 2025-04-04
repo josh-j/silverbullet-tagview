@@ -31,7 +31,7 @@ html {
 .treeview-root {
   /* SortableTree variables */
   --st-label-height: auto;
-  --st-subnodes-padding-left: 1.25rem; /* Less relevant for flat list */
+  --st-subnodes-padding-left: 1.25rem; /* Hierarchy relevant again */
   --st-collapse-icon-height: 2.1rem;
   --st-collapse-icon-width: 1.25rem;
   --st-collapse-icon-size: 1rem;
@@ -124,18 +124,19 @@ html, body {
 	display: flex;
 	flex-direction: column;
   margin: 0.25rem 0.5rem 1rem;
-  /* Reduce left padding as hierarchy isn't used */
-  /* padding-left: var(--st-subnodes-padding-left); */
-   padding-left: 0; /* Or a smaller fixed value like 0.5rem */
+  /* Restore padding since hierarchy is used */
+  padding-left: var(--st-subnodes-padding-left);
 }
 
-/* Collapse icon styling - less relevant but keep for SortableTree structure */
+/* Collapse icon styling - Ensure it's visible */
 .tree__collapse {
   color: var(--editor-command-button-color);
-   /* Hide collapse icon if node has no children (always true for flat list) */
-   /* This might depend on how SortableTree adds the element */
-   /* Example: sortable-tree-node:not([has-subnodes]) .tree__collapse { display: none; } */
-   display: none; /* Force hide collapse icon for flat list */
+   /* Ensure display is not 'none' if previously hidden */
+   /* display: flex; */ /* Or whatever SortableTree uses by default */
+}
+/* Hide collapse icon only if node has no children (SortableTree might handle this) */
+sortable-tree-node > :nth-child(2):empty + .tree__collapse {
+   display: none;
 }
 
 
@@ -198,19 +199,22 @@ html, body {
   margin-bottom: 2px;
 }
 
-/* Keep page/folder styles for fallback or if mixed content were ever possible */
+/* Keep page styles for fallback */
 .tree__label > span[data-node-type="page"] {
   background-color: var(--treeview-page-background-color);
   border-color: var(--treeview-page-border-color);
   color: var(--treeview-page-color);
 }
+
+/* Style specifically for folder nodes */
 .tree__label > span[data-node-type="folder"] {
-  background-color: var(--treeview-folder-background-color);
+  /* font-weight: bold; */ /* Example: Make folders bold */
+  background-color: var(--treeview-folder-background-color); /* Use folder vars if defined */
   border-color: var(--treeview-folder-border-color);
   color: var(--treeview-folder-color);
 }
 
-/* NEW: Style specifically for tag nodes */
+/* Style specifically for tag nodes */
 .tree__label > span[data-node-type="tag"] {
   background-color: var(--treeview-tag-background-color);
   border-color: var(--treeview-tag-border-color);
@@ -231,8 +235,9 @@ html, body {
 /* REMOVED: Current page highlight style */
 /* .tree__label > span[data-current-page="true"] { ... } */
 
-/* Optional: Add hover effect to tag nodes */
-.tree__label > span[data-node-type="tag"]:hover {
+/* Optional: Add hover effect to tag and folder nodes */
+.tree__label > span[data-node-type="tag"]:hover,
+.tree__label > span[data-node-type="folder"]:hover {
     background-color: var(--subtle-background-color); /* Example hover */
     border-color: var(--ui-accent-color); /* Example hover */
 }
