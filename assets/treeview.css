@@ -124,21 +124,19 @@ html, body {
   align-items: center; /* Vertically center icon */
 }
 /* Hide collapse icon only if node has no children */
-/* SortableTree adds the 'open' attribute, not a specific class for having children easily */
-/* We rely on the JS to handle empty subnodes perhaps, or hide via sibling selector if structure is consistent */
 sortable-tree-node > div:nth-child(2):empty + .tree__collapse {
    /* Selects the collapse span only if the subnode div (2nd child) is empty */
    display: none;
 }
 
+
 .tree__label {
   display: flex;
-  /* align-items: center; */ /* Let content align naturally or control via span */
   padding: 2px 0; /* Adjust vertical padding */
   position: relative;
 }
 
-/* D&D related styles (can be kept or removed) */
+/* D&D related styles (can be kept or removed if D&D is never enabled) */
 .tree__label:after {
   content: ' ';
   position: absolute;
@@ -171,7 +169,7 @@ sortable-tree-node > div:nth-child(2):empty + .tree__collapse {
 
 /* General style for the node text container (span) */
 .tree__label > span {
-  overflow: hidden; /* Hide overflow */
+  overflow: visible; /* Allow pseudo elements maybe? Adjust if text overflows badly */
   padding: 4px 5px; /* Adjust padding */
   border-color: transparent;
   border-width: var(--treeview-node-border-width);
@@ -179,15 +177,13 @@ sortable-tree-node > div:nth-child(2):empty + .tree__collapse {
   border-radius: var(--treeview-node-border-radius);
   cursor: pointer;
   font-family: var(--editor-font);
-  font-size: 16px; /* Slightly smaller maybe */
-  /* line-height: 1.2; Let block elements inside control line height*/
+  font-size: 16px;
+  line-height: 1.4; /* Restore default line height */
   text-decoration: none;
-  /* text-overflow: ellipsis; Need to handle this differently with block inside */
   white-space: nowrap; /* Keep title on one line */
   display: inline-block; /* Fit content width */
   margin-bottom: 2px;
-  /* Add relative positioning if needed for pseudo-elements */
-  position: relative;
+  position: relative; /* Needed for ::before */
 }
 
 /* Add icons using ::before */
@@ -195,7 +191,7 @@ sortable-tree-node > div:nth-child(2):empty + .tree__collapse {
   display: inline-block; /* Allows margin */
   margin-right: 6px;   /* Space between icon and text */
   font-size: 1em;      /* Adjust icon size */
-  vertical-align: text-top; /* Try to align icon with text */
+  vertical-align: -0.1em; /* Fine-tune vertical alignment */
   width: 1.1em; /* Reserve some width */
   text-align: center;
   line-height: 1; /* Prevent icon affecting line height */
@@ -227,12 +223,15 @@ sortable-tree-node > div:nth-child(2):empty + .tree__collapse {
 
 /* Style for the page count within the tag label */
 .treeview-node-pagecount {
-  font-size: 0.8em;
+  font-size: 0.85em; /* Slightly larger count */
   margin-left: 6px;
   opacity: 0.7;
   display: inline-block; /* Keep it inline */
   vertical-align: baseline;
 }
+
+/* REMOVED: Styling for .treeview-fullpath-detail */
+
 
 /* Optional: Add hover effect to tag and folder nodes */
 .tree__label > span[data-node-type="tag"]:hover,
