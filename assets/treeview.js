@@ -42,17 +42,13 @@
 const TREE_STATE_ID = "treeview";
 
 /**
- * Initializes the TreeView's `SortableTree` instance using the library's icon configuration.
+ * Initializes the TreeView's `SortableTree` instance using CSS for icons.
  * @param {TagPageTreeViewJsConfig} config - Configuration object for the tree view.
  * @returns {SortableTree} The created SortableTree instance.
  */
 function createTagTreeView(config) {
-  // Define SVG icons for collapsed (chevron right) and open (chevron down) states
-  // These SVGs will be inserted by the SortableTree library into the `.tree__collapse` span.
-  const collapsedIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>`;
-  const openIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>`;
-
   // Create the SortableTree instance
+  // *** REMOVED the icons option ***
   return new SortableTree({
     // Core tree data
     nodes: config.nodes,
@@ -64,21 +60,13 @@ function createTagTreeView(config) {
     stateId: TREE_STATE_ID, // Enable state persistence for collapse/expand
     initCollapseLevel: 1, // Start with only root nodes expanded (level 0 is root)
 
-    // Provide the icons directly to the library
-    icons: {
-        collapsed: collapsedIcon,
-        open: openIcon,
-    },
+    // *** icons option is NOT provided here ***
 
     // No confirmation needed for D&D as it's disabled
     // confirm: async (movedNode, targetParentNode) => true,
 
     // onChange might be useful for saving state or other actions if D&D were enabled
     onChange: async () => {
-       // Example: Refreshing on change might save the collapse state if needed,
-       // but state persistence via stateId should handle this automatically.
-       // Consider if a full refresh is desired on structural changes (if D&D enabled).
-       // await syscall("system.invokeFunction", "treeview.show");
        console.log("Tree structure changed (if D&D were enabled)");
     },
 

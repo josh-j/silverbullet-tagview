@@ -7,7 +7,7 @@ html {
   --treeview-page-color: var(--text-color);
   --treeview-folder-color: var(--text-color);
   --treeview-tag-color: var(--text-color);
-  --treeview-icon-color: var(--text-muted); /* Color for chevron */
+  --treeview-icon-color: var(--text-muted); /* Color for default +/- icon */
 }
 
 .treeview-root {
@@ -16,7 +16,7 @@ html {
   --st-subnodes-padding-left: 1.25rem;
   --st-collapse-icon-height: 1.5em; /* Controls height of the icon container */
   --st-collapse-icon-width: 1.25rem; /* Controls width of the icon container */
-  --st-collapse-icon-size: 1em; /* Might affect default icon size if library uses font-size */
+  --st-collapse-icon-size: 1.1em; /* Controls font size of the +/- icon */
 }
 
 /******************************************************************************
@@ -65,7 +65,7 @@ html, body {
 }
 
 /******************************************************************************
- * SortableTree styles & Appearance Fixes
+ * SortableTree styles & Default +/- Icon Styling
  *****************************************************************************/
 
 /* Main tree container */
@@ -92,9 +92,8 @@ sortable-tree-node > div:nth-child(2) {
   min-height: 1.8em;
 }
 
-/* Collapse icon container - Provided by SortableTree library */
+/* Collapse icon container - style the span holding the +/- */
 .tree__collapse {
-  /* Keep positioning and sizing */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -103,31 +102,29 @@ sortable-tree-node > div:nth-child(2) {
   flex-shrink: 0;
   cursor: pointer;
   opacity: 0.7;
-  position: relative; /* Maintain relative positioning if needed */
+  color: var(--treeview-icon-color); /* Set color for +/- */
+  font-size: var(--st-collapse-icon-size); /* Set font size for +/- */
+  font-weight: bold;
+  line-height: 1; /* Adjust line height for vertical centering */
+  text-align: center;
+  /* Remove position relative if not needed for ::before */
+  /* position: relative; */
 }
 
 .tree__collapse:hover { opacity: 1; }
 
-/* Style the SVG icon injected by the library */
-.tree__collapse > svg {
-    /* display: block; /* Ensure SVG is displayed (remove the old display: none) */
-    width: var(--st-collapse-icon-size); /* Control size */
-    height: var(--st-collapse-icon-size); /* Control size */
-    stroke: var(--treeview-icon-color); /* Control color */
-}
+/* *** REMOVED ::before styles *** */
+/* *** REMOVED rule hiding content like .tree__collapse > * *** */
 
-/* REMOVE ALL ::before rules for .tree__collapse */
-/* .tree__collapse::before { ... } */
-/* sortable-tree-node:not([open]) > .tree__label > .tree__collapse::before, ... */
-/* sortable-tree-node[open] > .tree__label > .tree__collapse::before, ... */
 
 /* Hide collapse icon container if node has no children or is page */
-/* sortable-tree-node > div:nth-child(2):empty + span.tree__collapse, */
-/* sortable-tree-node[data-node-type="page"] > span.tree__collapse, */
-/* sortable-tree-node[data-node-type="page"] > div:first-child > span.tree__collapse */
-/* { */
-   /* visibility: hidden; */
-/* } */
+/* This rule remains important */
+sortable-tree-node > div:nth-child(2):empty + span.tree__collapse,
+sortable-tree-node[data-node-type="page"] > span.tree__collapse,
+sortable-tree-node[data-node-type="page"] > div:first-child > span.tree__collapse
+{
+   visibility: hidden;
+}
 
 
 /* Node Content Span (Text, Icon, Count) */
@@ -189,3 +186,4 @@ sortable-tree-node > div:nth-child(2) {
 .tree__node--dragging { margin: calc(var(--treeview-node-border-width) * -1); border: var(--treeview-node-border-width) dashed var(--subtle-color); border-radius: var(--treeview-node-border-radius); cursor: move !important; opacity: 0.75; }
 .tree__node--dragging .tree__label > span { opacity: 0.75; }
 .tree__node--drop-inside > .tree__label > span { z-index: 3; background-color: var(--subtle-background-color); border-color: var(--ui-accent-color); }
+
