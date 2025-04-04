@@ -20,6 +20,7 @@
  * @property {string} treeElementId - The ID of the HTML element where the tree will be rendered.
  * @property {Object} dragAndDrop - Drag and drop configuration (should be disabled).
  * @property {boolean} dragAndDrop.enabled - Should be false.
+ * @property {string} currentPage - Name of the currently open page. // *** Added ***
  */
 
 /**
@@ -41,6 +42,9 @@
 // ID used for persisting the collapse/expand state in sessionStorage
 const TREE_STATE_ID = "treeview";
 
+// Store current page globally within the panel's script scope
+let panelCurrentPage = "";
+
 /**
  * Initializes the TreeView's `SortableTree` instance using CSS for icons.
  * @param {TagPageTreeViewJsConfig} config - Configuration object for the tree view.
@@ -48,7 +52,6 @@ const TREE_STATE_ID = "treeview";
  */
 function createTagTreeView(config) {
   // Create the SortableTree instance
-  // *** REMOVED the icons option ***
   return new SortableTree({
     // Core tree data
     nodes: config.nodes,
@@ -60,12 +63,11 @@ function createTagTreeView(config) {
     stateId: TREE_STATE_ID, // Enable state persistence for collapse/expand
     initCollapseLevel: 1, // Start with only root nodes expanded (level 0 is root)
 
-    // *** icons option is NOT provided here ***
+    // icons option is NOT provided here - using default +/-
 
     // No confirmation needed for D&D as it's disabled
     // confirm: async (movedNode, targetParentNode) => true,
 
-    // onChange might be useful for saving state or other actions if D&D were enabled
     onChange: async () => {
        console.log("Tree structure changed (if D&D were enabled)");
     },
@@ -83,47 +85,47 @@ function createTagTreeView(config) {
         // It's a page node - navigate to it using SilverBullet's editor syscall
         console.log("Panel: Page node clicked, navigating to:", nodeName);
         try {
-          await syscall("editor.navigate", nodeName);
+          // Check if already on the page to prevent unnecessary navigation
+          if (nodeName !== panelCurrentPage) {
+            await syscall("editor.navigate", nodeName);
+          }
         } catch (e) {
            console.error("Panel: Error navigating to page:", e);
-           // Show an error notification to the user
            syscall("editor.flashNotification", `Error navigating: ${e.message}`, "error");
         }
       } else if (nodeType === 'folder' || nodeType === 'tag') {
         // It's a folder or tag node. Toggle its collapse state when the label is clicked.
-        // The click on the actual chevron icon is handled automatically by SortableTree.
         console.log(`Panel: ${nodeType} node label clicked, toggling:`, nodeName);
         node.toggle(); // Toggles between collapsed/expanded
       } else {
-         // Log a warning if a node with an unexpected type is clicked
          console.warn("Panel: Clicked node with unknown type:", node.data);
       }
     },
 
     /**
      * Renders the HTML content for the label part of a node.
+     * Checks if the node represents the currently open page.
      * @param {NodeData} data - The data object associated with the node.
      * @returns {string} HTML string for the node's label content.
      */
     renderLabel: (data) => {
         let content = '';
-        // Use title for display (usually the last part of the path), fallback to name if title is missing
         const title = data.title || data.name;
 
-        // For 'tag' nodes, append the page count if it's greater than 0
         if (data.nodeType === 'tag' && typeof data.pageCount === 'number' && data.pageCount > 0) {
           content = `${title} <span class="treeview-node-pagecount">(${data.pageCount})</span>`;
         } else {
-          // For 'folder' or 'page' nodes, just display the title
           content = title;
         }
 
-        // Return the main span element for the label.
-        // - data-node-type attribute is used for CSS styling (e.g., page icon).
-        // - title attribute provides a tooltip showing the full name (path).
+        // *** Check if this node is the current page ***
+        // Only pages can be the current page
+        const isCurrentPage = (data.nodeType === 'page' && data.name === panelCurrentPage);
+
         return `
           <span
             data-node-type="${data.nodeType}"
+            data-current-page="${isCurrentPage}" /* Set true/false */
             title="${data.name}"
           >
              ${content}
@@ -134,14 +136,14 @@ function createTagTreeView(config) {
 
 /**
  * Initializes the tree view panel, creates the SortableTree, and sets up action button listeners.
- * This function is intended to be called from the panel's inline script.
+ * Stores the current page name for use in renderLabel.
  * @param {TagPageTreeViewJsConfig} config - The configuration passed from the plug's backend.
  */
-// Add deno-lint-ignore if necessary in your environment, but it's standard practice
-// for functions called from inline scripts not to be flagged as unused.
 // deno-lint-ignore no-unused-vars
 function initializeTreeViewPanel(config) {
-  // Ensure Drag & Drop is explicitly disabled in the config passed to createTagTreeView
+  // Store currentPage from config
+  panelCurrentPage = config.currentPage || ""; // Store globally in panel scope
+
   config.dragAndDrop = { enabled: false };
   const tree = createTagTreeView(config); // Create the tree instance
 
@@ -149,50 +151,41 @@ function initializeTreeViewPanel(config) {
   const handleAction = (action) => {
     switch (action) {
        case "collapse-all": {
-         // Find all currently open nodes
          document.querySelectorAll("sortable-tree-node[open='true']").forEach((node) => {
-             // Check if the node actually has visible children before collapsing
-             // node.children[1] is the subnodes container (div)
              if (node.children[1] && node.children[1].children.length > 0) {
-                 node.collapse(true); // Collapse the node
+                 node.collapse(true);
              }
          });
-         return true; // Indicate action was handled
+         return true;
        }
        case "expand-all": {
-         // Find all currently closed nodes
          document.querySelectorAll("sortable-tree-node:not([open='true'])").forEach((node) => {
-            // Check if the node has children before expanding
              if (node.children[1] && node.children[1].children.length > 0) {
-                node.collapse(false); // Expand the node
+                node.collapse(false);
              }
          });
-         return true; // Indicate action was handled
+         return true;
        }
       case "close-panel": {
-        // Call the plug's backend function to hide the panel
         syscall("system.invokeFunction", "treeview.hide");
-        return true; // Indicate action was handled
+        return true;
       }
       case "refresh": {
-        // Clear the persisted state (collapse/expand) before refreshing
-        // This helps ensure the initCollapseLevel is respected on refresh.
         tree.clearState();
-        // Call the plug's backend function to reload and show the tree
-        syscall("system.invokeFunction", "treeview.show");
-        return true; // Indicate action was handled
+        syscall("system.invokeFunction", "treeview.show"); // Will re-run this whole init
+        return true;
       }
+      // Add reveal current page action if desired (similar to example JS)
+      // case "reveal-current-page": { ... }
     }
-    return false; // Action not recognized or handled
+    return false;
   }
 
   // Add click listeners to all action buttons in the header
   document.querySelectorAll("[data-treeview-action]").forEach((el) => {
     const action = el.dataset["treeviewAction"];
-    // Check if the action is one we handle
     if (["refresh", "close-panel", "collapse-all", "expand-all"].includes(action)) {
       el.addEventListener("click", (e) => {
-        // If the action was handled, prevent default browser behavior and event bubbling
         if (handleAction(action)) {
           e.stopPropagation();
           e.preventDefault();
@@ -201,6 +194,5 @@ function initializeTreeViewPanel(config) {
     }
   });
 
-  // Initial setup is complete. The tree is rendered and interactive.
-  console.log("TreeView panel initialized.");
+  console.log("TreeView panel initialized. Current page:", panelCurrentPage);
 }
