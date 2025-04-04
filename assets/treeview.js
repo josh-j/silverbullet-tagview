@@ -1,19 +1,19 @@
 /**
- * @typedef {import("../api.ts").NodeData} NodeData // Use base NodeData type
+ * @typedef {import("../api.ts").NodeData} NodeData // Union type: Folder | Tag | Page
  */
 
 /**
- * Represents a node in the SortableTree (tag or folder).
+ * Represents a node in the SortableTree (folder, tag, or page).
  * @typedef SortableTreeNode
  * @type {Object}
- * @property {NodeData} data - The tag or folder data.
+ * @property {NodeData} data - The node data.
  */
 
 /**
- * Configuration for the Hierarchical Tag TreeView panel.
- * @typedef TagTreeViewJsConfig
+ * Configuration for the TreeView panel showing pages under tags.
+ * @typedef TagPageTreeViewJsConfig
  * @type {Object}
- * @property {Array<{data: NodeData, nodes: Array}>} nodes - A tree of tag/folder nodes.
+ * @property {Array<{data: NodeData, nodes: Array}>} nodes - A tree of folder/tag/page nodes.
  * @property {string} treeElementId - The ID of the HTML element.
  * @property {Object} dragAndDrop - Should still be disabled.
  * @property {boolean} dragAndDrop.enabled - False.
@@ -23,8 +23,8 @@
 const TREE_STATE_ID = "treeview"; // State ID relevant for collapse/expand
 
 /**
- * Initializes the Hierarchical Tag TreeView's `SortableTree` instance.
- * @param {TagTreeViewJsConfig} config
+ * Initializes the TreeView's `SortableTree` instance.
+ * @param {TagPageTreeViewJsConfig} config
  * @returns {SortableTree}
  */
 function createTagTreeView(config) {
@@ -38,84 +38,62 @@ function createTagTreeView(config) {
 
     // No 'confirm' handler needed
 
-    // onChange can be useful for saving state if nodes are collapsed/expanded
+    // onChange might be useful for saving state
     onChange: async () => {
        await syscall("system.invokeFunction", "treeview.show");
     },
 
     /**
-     * Handles clicking on a node (tag or folder).
-     * If tag, fetches pages and shows filterBox. If folder, toggles.
+     * Handles clicking on a node (folder, tag, or page).
      * @param {Event} _event
      * @param {SortableTreeNode} node
      */
     onClick: async (_event, node) => {
-      if (node.data.nodeType === 'tag') {
-        // It's a tag node - fetch associated pages
-        console.log("Panel: Tag clicked, fetching pages for:", node.data.name);
+      const nodeType = node.data.nodeType;
+      const nodeName = node.data.name;
+
+      if (nodeType === 'page') {
+        // It's a page node - navigate to it
+        console.log("Panel: Page node clicked, navigating to:", nodeName);
         try {
-          // Call backend function to get pages for this specific tag
-          const pageList = await syscall("system.invokeFunction", "treeview.getPagesForTag", node.data.name);
-          console.log("Panel: Received pages:", pageList);
-
-          if (pageList && pageList.length > 0) {
-            // Format pages for filterBox
-            const pageOptions = pageList.map(pageName => ({
-              name: `📄 ${pageName}`, // Add page icon (optional)
-              description: `Navigate to page tagged #${node.data.name}`,
-              value: pageName // Store page name to navigate to
-            }));
-
-            // Show filter box with page options
-            const selectedPage = await syscall(
-              "editor.filterBox",
-              `Pages tagged #${node.data.name}`, // Title for the filter box
-              pageOptions,                      // The list of pages
-              "Select a page to navigate or Esc to cancel" // Help text
-            );
-
-            // If the user selected a page
-            if (selectedPage && selectedPage.value) {
-              console.log("Panel: Navigating to selected page:", selectedPage.value);
-              // Navigate to the selected page's name (stored in value)
-              await syscall("editor.navigate", selectedPage.value);
-            } else {
-              console.log("Panel: Page selection cancelled.");
-            }
-          } else {
-            // No pages found for this tag
-            console.log("Panel: No pages found for tag:", node.data.name);
-            syscall("editor.flashNotification", `No pages found for tag #${node.data.name}`, "info");
-          }
+          await syscall("editor.navigate", nodeName);
         } catch (e) {
-          // Handle errors during the process
-          console.error("Panel: Error fetching or showing pages for tag:", e);
-          syscall("editor.flashNotification", `Error showing pages for tag: ${e.message}`, "error");
+           console.error("Panel: Error navigating to page:", e);
+           syscall("editor.flashNotification", `Error navigating: ${e.message}`, "error");
         }
-      } else {
-        // It's a folder node, toggle it when the label is clicked
-        console.log("Panel: Folder clicked:", node.data.name);
+      } else if (nodeType === 'folder' || nodeType === 'tag') {
+        // It's a folder or tag node, toggle it when the label is clicked
+        // The collapse icon click is handled automatically by SortableTree
+        console.log(`Panel: ${nodeType} node clicked:`, nodeName);
         node.toggle();
+      } else {
+         console.warn("Panel: Clicked node with unknown type:", node.data);
       }
     },
 
     /**
-     * Renders the label HTML for a tag or folder node.
-     * Includes title and page count (for tags).
+     * Renders the label HTML for a node.
      * @param {NodeData} data - The data for the node.
      * @returns {string}
      */
     renderLabel: (data) => {
-        const pageCountHtml = data.nodeType === 'tag' && typeof data.pageCount === 'number'
-          ? `<span class="treeview-node-pagecount">(${data.pageCount})</span>`
-          : ''; // Only show count for tags
+        let content = '';
+        const title = data.title || data.name; // Fallback to name if title missing
 
-        // Return only title and page count inside the main span
+        if (data.nodeType === 'tag' && typeof data.pageCount === 'number') {
+          // Tag node: Show title and page count
+          content = `${title} <span class="treeview-node-pagecount">(${data.pageCount})</span>`;
+        } else {
+          // Folder or Page node: Just show title
+          content = title;
+        }
+
+        // Return the span with appropriate data attributes
         return `
           <span
             data-node-type="${data.nodeType}"
             title="${data.name}" >
-             ${data.title}${pageCountHtml}
+             ${content}
           </span>`;
       },
   });
@@ -123,7 +101,7 @@ function createTagTreeView(config) {
 
 /**
  * Initializes the tag tree view panel and its action bar.
- * @param {TagTreeViewJsConfig} config
+ * @param {TagPageTreeViewJsConfig} config
  */
 // deno-lint-ignore no-unused-vars
 function initializeTreeViewPanel(config) {
@@ -132,7 +110,6 @@ function initializeTreeViewPanel(config) {
 
   const handleAction = (action) => {
     switch (action) {
-      // Handle expand/collapse all actions
        case "collapse-all": {
          document.querySelectorAll("sortable-tree-node[open='true']").forEach((node) => {
              if (node.children[1] && node.children[1].children.length > 0) {
@@ -162,7 +139,7 @@ function initializeTreeViewPanel(config) {
     return false;
   }
 
-  // Add listeners for all potential actions defined in the HTML
+  // Add listeners for actions
   document.querySelectorAll("[data-treeview-action]").forEach((el) => {
     const action = el.dataset["treeviewAction"];
     if (["refresh", "close-panel", "collapse-all", "expand-all"].includes(action)) {
