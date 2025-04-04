@@ -23,9 +23,9 @@
  * @property {Object} dragAndDrop - Drag and drop configuration (should be disabled).
  * @property {boolean} dragAndDrop.enabled - Should be false.
  * @property {string} currentPage - Name of the currently open page.
- * @property {Object} nodeIcons - Contains SVG content for node icons. // *** Added ***
- * @property {string} nodeIcons.collapsed - SVG string for collapsed state. // *** Added ***
- * @property {string} nodeIcons.open - SVG string for open state. // *** Added ***
+ * @property {Object} nodeIcons - Contains SVG content for node icons.
+ * @property {string} nodeIcons.collapsed - SVG string for collapsed state.
+ * @property {string} nodeIcons.open - SVG string for open state.
  */
 
 /**
@@ -58,40 +58,27 @@ let panelCurrentPage = "";
  */
 function createTagTreeView(config) {
 
-  // *** Get SVG icon content from the config object ***
-  // Provide default fallbacks just in case they aren't passed correctly
+  // Get SVG icon content from the config object
   const collapsedIcon = config.nodeIcons?.collapsed || `<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>`;
   const openIcon = config.nodeIcons?.open || `<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>`;
-  // **************************************************
 
   // Create the SortableTree instance
   return new SortableTree({
-    // Core tree data
     nodes: config.nodes,
     element: document.getElementById(config.treeElementId),
-
-    // Configuration options
     disableSorting: true,
     lockRootLevel: true,
     stateId: TREE_STATE_ID,
     initCollapseLevel: 1,
-
-    // *** Use the icons received from the config ***
     icons: {
         collapsed: collapsedIcon,
         open: openIcon,
     },
-    // ********************************************
 
     onChange: async () => {
        console.log("Tree structure changed (if D&D were enabled)");
     },
 
-    /**
-     * Handles clicking on a node label (folder, tag, or page).
-     * @param {Event} _event - The click event (often unused).
-     * @param {SortableTreeNode} node - The clicked SortableTree node instance.
-     */
     onClick: async (_event, node) => {
       const nodeType = node.data.nodeType;
       const nodeName = node.data.name;
@@ -116,19 +103,22 @@ function createTagTreeView(config) {
 
     /**
      * Renders the HTML content for the label part of a node.
+     * Treats tags and folders the same (no page count).
      * Checks if the node represents the currently open page.
      * @param {NodeData} data - The data object associated with the node.
      * @returns {string} HTML string for the node's label content.
      */
     renderLabel: (data) => {
-        let content = '';
+        // *** SIMPLIFIED: Always use title for folders and tags ***
         const title = data.title || data.name;
+        let content = title; // Use title directly
 
-        if (data.nodeType === 'tag' && typeof data.pageCount === 'number' && data.pageCount > 0) {
-          content = `${title} <span class="treeview-node-pagecount">(${data.pageCount})</span>`;
-        } else {
-          content = title;
-        }
+        // Remove specific logic for adding page count to tags
+        // if (data.nodeType === 'tag' && typeof data.pageCount === 'number' && data.pageCount > 0) {
+        //   content = `${title} <span class="treeview-node-pagecount">(${data.pageCount})</span>`;
+        // } else {
+        //   content = title;
+        // }
 
         const isCurrentPage = (data.nodeType === 'page' && data.name === panelCurrentPage);
 
