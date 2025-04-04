@@ -15,24 +15,18 @@ html {
   --treeview-folder-background-color: var(--treeview-page-background-color);
   --treeview-folder-border-color: var(--treeview-page-background-color);
 
-  /* NEW: Variables for Tag Nodes */
-  /* Defaulting to look like pages, but can be customized */
+  /* Variables for Tag Nodes */
   --treeview-tag-color: var(--treeview-page-color);
   --treeview-tag-background-color: var(--treeview-page-background-color);
   --treeview-tag-border-color: var(--treeview-page-border-color);
 
-
-  /* REMOVED: Current page styles (not applicable) */
-  /* --treeview-current-page-color: #eee; */
-  /* --treeview-current-page-background-color: var(--ui-accent-color); */
-  /* --treeview-current-page-border-color: var(--treeview-page-border-color); */
 }
 
 .treeview-root {
   /* SortableTree variables */
   --st-label-height: auto;
   --st-subnodes-padding-left: 1.25rem; /* Hierarchy relevant again */
-  --st-collapse-icon-height: 2.1rem;
+  --st-collapse-icon-height: 2.1rem; /* Adjust if needed */
   --st-collapse-icon-width: 1.25rem;
   --st-collapse-icon-size: 1rem;
 }
@@ -56,8 +50,6 @@ html, body {
 
 /******************************************************************************
  * Header styles
- *
- * Action styles are meant to mimic the Top Bar icons (`sb-actions`)
  *****************************************************************************/
 
 .treeview-header {
@@ -88,7 +80,6 @@ html, body {
   flex-wrap: wrap;
 }
 
-/* Style for the action buttons (keep generic) */
 .treeview-actions button {
   display: flex;
   align-items: center;
@@ -102,10 +93,8 @@ html, body {
 
 .treeview-actions button:hover {
   color: var(--action-button-hover-color);
-  /* background-color: var(--action-button-hover-background-color); */ /* Optional hover background */
 }
 
-/* Use :active for click feedback if desired */
 .treeview-actions button:active {
   color: var(--action-button-active-color);
 }
@@ -131,22 +120,25 @@ html, body {
 /* Collapse icon styling - Ensure it's visible */
 .tree__collapse {
   color: var(--editor-command-button-color);
-   /* Ensure display is not 'none' if previously hidden */
-   /* display: flex; */ /* Or whatever SortableTree uses by default */
+  display: flex; /* Ensure it's displayed */
+  align-items: center; /* Vertically center icon */
 }
-/* Hide collapse icon only if node has no children (SortableTree might handle this) */
-sortable-tree-node > :nth-child(2):empty + .tree__collapse {
+/* Hide collapse icon only if node has no children */
+/* SortableTree adds the 'open' attribute, not a specific class for having children easily */
+/* We rely on the JS to handle empty subnodes perhaps, or hide via sibling selector if structure is consistent */
+sortable-tree-node > div:nth-child(2):empty + .tree__collapse {
+   /* Selects the collapse span only if the subnode div (2nd child) is empty */
    display: none;
 }
 
-
 .tree__label {
   display: flex;
-  padding: 2px; /* Keep padding around the label */
-  position: relative; /* Needed for ::after */
+  /* align-items: center; */ /* Let content align naturally or control via span */
+  padding: 2px 0; /* Adjust vertical padding */
+  position: relative;
 }
 
-/* D&D related styles - Optional: can be removed if not needed */
+/* D&D related styles (can be kept or removed) */
 .tree__label:after {
   content: ' ';
   position: absolute;
@@ -159,95 +151,43 @@ sortable-tree-node > :nth-child(2):empty + .tree__collapse {
 }
 .tree__node--drop-before > .tree__label:after { border-top-color: var(--ui-accent-color); }
 .tree__node--drop-after > .tree__label:after { border-bottom-color: var(--ui-accent-color); }
-.tree__node--dragging { /* Style for the ghost node being dragged */
+.tree__node--dragging {
   margin: calc(var(--treeview-node-border-width) * -1);
   border: var(--treeview-node-border-width) dashed var(--subtle-color);
   border-radius: var(--treeview-node-border-radius);
   cursor: move !important;
-  opacity: 0.75; /* Make ghost semi-transparent */
+  opacity: 0.75;
 }
 .tree__node--dragging .tree__label > span {
-  /* Style the label inside the ghost */
-   opacity: 0.75; /* Example */
+   opacity: 0.75;
 }
-.tree__node--drop-inside > .tree__label > span { /* Style when hovering over droppable area */
+.tree__node--drop-inside > .tree__label > span {
   z-index: 3;
   background-color: var(--subtle-background-color);
   border-color: var(--ui-accent-color);
 }
-/* End Optional D&D styles */
+/* End D&D styles */
 
 
 /* General style for the node text container (span) */
 .tree__label > span {
-  overflow: hidden;
-  padding: 0 5px;
+  overflow: hidden; /* Hide overflow */
+  padding: 4px 5px; /* Adjust padding */
   border-color: transparent;
   border-width: var(--treeview-node-border-width);
   border-style: solid;
   border-radius: var(--treeview-node-border-radius);
   cursor: pointer;
   font-family: var(--editor-font);
-  font-size: 18px; /* Or adjust as needed */
-  line-height: 1.4;
+  font-size: 16px; /* Slightly smaller maybe */
+  /* line-height: 1.2; Let block elements inside control line height*/
   text-decoration: none;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  /* Allow the span to grow */
-  display: inline-block; /* Or flex */
-  /* Add some margin between items if needed */
+  /* text-overflow: ellipsis; Need to handle this differently with block inside */
+  white-space: nowrap; /* Keep title on one line */
+  display: inline-block; /* Fit content width */
   margin-bottom: 2px;
-}
-
-/* Keep page styles for fallback */
-.tree__label > span[data-node-type="page"] {
-  background-color: var(--treeview-page-background-color);
-  border-color: var(--treeview-page-border-color);
-  color: var(--treeview-page-color);
-}
-
-/* Style specifically for folder nodes */
-.tree__label > span[data-node-type="folder"] {
-  /* font-weight: bold; */ /* Example: Make folders bold */
-  background-color: var(--treeview-folder-background-color); /* Use folder vars if defined */
-  border-color: var(--treeview-folder-border-color);
-  color: var(--treeview-folder-color);
-}
-
-/* Style specifically for tag nodes */
-.tree__label > span[data-node-type="tag"] {
-  background-color: var(--treeview-tag-background-color);
-  border-color: var(--treeview-tag-border-color);
-  color: var(--treeview-tag-color);
-}
-
-/* Style for the page count within the tag label */
-.treeview-node-pagecount {
-  font-size: 0.8em;
-  margin-left: 6px;
-  opacity: 0.7;
-  /* Prevent count from causing line breaks */
-  display: inline-block;
-  vertical-align: baseline; /* Align with text */
-}
-
-
-/* REMOVED: Current page highlight style */
-/* .tree__label > span[data-current-page="true"] { ... } */
-
-/* Optional: Add hover effect to tag and folder nodes */
-.tree__label > span[data-node-type="tag"]:hover,
-.tree__label > span[data-node-type="folder"]:hover {
-    background-color: var(--subtle-background-color); /* Example hover */
-    border-color: var(--ui-accent-color); /* Example hover */
-}
-
-/* Add towards the end of the file */
-
-/* Style for the main label span content */
-.tree__label > span {
-  /* display: flex; */ /* Uncomment if you want to use flexbox for alignment within the span */
-  /* align-items: center; */
+  /* Add relative positioning if needed for pseudo-elements */
+  position: relative;
 }
 
 /* Add icons using ::before */
@@ -255,45 +195,60 @@ sortable-tree-node > :nth-child(2):empty + .tree__collapse {
   display: inline-block; /* Allows margin */
   margin-right: 6px;   /* Space between icon and text */
   font-size: 1em;      /* Adjust icon size */
-  vertical-align: middle; /* Try to align icon with text */
-  width: 1.2em; /* Reserve some width */
+  vertical-align: text-top; /* Try to align icon with text */
+  width: 1.1em; /* Reserve some width */
   text-align: center;
+  line-height: 1; /* Prevent icon affecting line height */
 }
 
+/* Specific node type styling */
+.tree__label > span[data-node-type="page"] { /* Fallback */
+  background-color: var(--treeview-page-background-color);
+  border-color: var(--treeview-page-border-color);
+  color: var(--treeview-page-color);
+}
+.tree__label > span[data-node-type="folder"] {
+  /* font-weight: bold; */ /* Example */
+  background-color: var(--treeview-folder-background-color);
+  border-color: var(--treeview-folder-border-color);
+  color: var(--treeview-folder-color);
+}
 .tree__label > span[data-node-type="folder"]::before {
   content: "📁"; /* Unicode Folder icon */
-  /* Or use an SVG: content: url('data:image/svg+xml,...'); */
 }
-
+.tree__label > span[data-node-type="tag"] {
+  background-color: var(--treeview-tag-background-color);
+  border-color: var(--treeview-tag-border-color);
+  color: var(--treeview-tag-color);
+}
 .tree__label > span[data-node-type="tag"]::before {
   content: "🏷️"; /* Unicode Tag icon */
-  /* Or use an SVG */
 }
 
-/* Optional: Hide the default SortableTree collapse icon if using folder icons */
-.tree__collapse {
-  /* display: none; */ /* Uncomment this if the default triangle overlaps badly */
-}
-
-/* Adjust tree padding if default collapse icon is hidden */
-/* .tree {
-  padding-left: 0.5rem; /* Adjust as needed if hiding .tree__collapse */
-/* } */
-
-
-
-/* Add towards the end */
-.treeview-fullpath-detail {
-  display: block; /* Attempt to put it on its own line */
+/* Style for the page count within the tag label */
+.treeview-node-pagecount {
   font-size: 0.8em;
+  margin-left: 6px;
   opacity: 0.7;
-  margin-left: 0; /* Override potential inherited margins */
-  /* You might need more specific CSS to get exact positioning */
-  white-space: normal; /* Allow path to wrap if long */
+  display: inline-block; /* Keep it inline */
+  vertical-align: baseline;
 }
 
-/* Adjust main span padding if needed */
-.tree__label > span {
-    padding-top: 4px;
-    padding-bottom: 4px;
+/* Style for the full path detail inside the span */
+.treeview-fullpath-detail {
+  display: block; /* Put it on its own line */
+  font-size: 0.75em; /* Make it smaller */
+  opacity: 0.65;
+  margin-left: 0; /* Remove potential indent */
+  white-space: normal; /* Allow wrapping */
+  padding-left: calc(1.1em + 6px); /* Indent path detail to align with text after icon */
+  margin-top: 1px; /* Small space above */
+}
+
+
+/* Optional: Add hover effect to tag and folder nodes */
+.tree__label > span[data-node-type="tag"]:hover,
+.tree__label > span[data-node-type="folder"]:hover {
+    background-color: var(--subtle-background-color);
+    border-color: var(--ui-accent-color);
 }
