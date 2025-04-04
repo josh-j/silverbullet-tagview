@@ -159,16 +159,22 @@ sortable-tree-node > div:nth-child(2) {
   stroke: var(--treeview-icon-color); /* Control color */
 }
 
-/* Hide collapse icon container if node has no children or is page */
-/* KEEP THIS COMMENTED OUT / REMOVED */
-/*
-sortable-tree-node > div:nth-child(2):empty + span.tree__collapse,
-sortable-tree-node[data-node-type="page"] > span.tree__collapse,
-sortable-tree-node[data-node-type="page"] > div:first-child > span.tree__collapse
-{
-   visibility: hidden;
+/* *** ADD BACK HIDING RULES using display: none *** */
+/* Hide icon container (span) if the preceding subnode container (div) is empty */
+/* This relies on the library consistently rendering empty subnode divs */
+sortable-tree-node > div:nth-child(2):empty + .tree__collapse {
+   display: none;
 }
-*/
+
+/* Hide icon container (span) for page nodes */
+sortable-tree-node[data-node-type="page"] > .tree__collapse {
+   display: none;
+}
+/* Just in case structure varies slightly for pages */
+sortable-tree-node[data-node-type="page"] > div:first-child > .tree__collapse {
+   display: none;
+}
+/* ************************************************* */
 
 
 /* Node Content Span (Text, Icon, Count) - Adapt from Example */
