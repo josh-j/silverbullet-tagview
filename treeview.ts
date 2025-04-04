@@ -120,8 +120,8 @@ export async function showTree() {
             <div class="treeview-header">
               <div class="treeview-actions">
                 <div class="treeview-actions-left">
-                  <button type="button" data-treeview-action="expand-all" title="Expand all">${iconFolderPlus}</button>
-                  <button type="button" data-treeview-action="collapse-all" title="Collapse all">${iconFolderMinus}</button>
+                  <button type="button" data-treeview-action="expand-all" title="Expand all">${iconHeaderExpand}</button>
+                  <button type="button" data-treeview-action="collapse-all" title="Collapse all">${iconHeaderCollapse}</button>
                   <button type="button" data-treeview-action="reveal-current-page" title="Reveal current page">${iconNavigation2}</button>
                   <button type="button" data-treeview-action="refresh" title="Refresh treeview">${iconRefresh}</button>
                 </div>
