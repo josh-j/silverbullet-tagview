@@ -23,9 +23,9 @@
   /* SortableTree variables */
   --st-label-height: auto;
   --st-subnodes-padding-left: 1.25rem;
-  --st-collapse-icon-height: 1.25rem;
-  --st-collapse-icon-width: 1.25rem;
-  --st-collapse-icon-size: 1rem;
+  --st-collapse-icon-height: 1rem;
+  --st-collapse-icon-width: 1rem;
+  --st-collapse-icon-size: 0.9rem;
 }
 
 /******************************************************************************
