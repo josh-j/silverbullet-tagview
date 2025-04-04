@@ -37,6 +37,10 @@ function createTreeView(config) {
     initCollapseLevel: 0,
     lockRootLevel: false,
 
+  	icons: {
+      collapsed: config.nodeIconCollapsedSvg, // Pass chevron-right content
+      open: config.nodeIconOpenSvg           // Pass chevron-down content
+  	},
     /**
      * @param {SortableTreeNode} movedNode
      * @param {SortableTreeNode} targetParentNode
