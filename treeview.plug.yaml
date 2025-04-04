@@ -1,6 +1,6 @@
 name: treeview
 # Increment version number
-version: 0.16
+version: 0.16.1
 # Add/Update description
 description: Displays a tree view of all tags in the space.
 assets:
