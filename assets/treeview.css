@@ -7,7 +7,7 @@ html {
   --treeview-page-color: var(--text-color);
   --treeview-folder-color: var(--text-color);
   --treeview-tag-color: var(--text-color);
-  --treeview-icon-color: var(--text-muted); /* Color for chevron */
+  --treeview-icon-color: var(--text-muted); /* Color for chevron (used by SVG stroke="currentColor") */
 }
 
 .treeview-root {
@@ -15,8 +15,8 @@ html {
   --st-label-height: auto;
   --st-subnodes-padding-left: 1.25rem;
   --st-collapse-icon-height: 1.5em;
-  --st-collapse-icon-width: 1.25rem;
-  --st-collapse-icon-size: 1em;
+  --st-collapse-icon-width: 1.25rem; /* Width of the clickable area */
+  --st-collapse-icon-size: 16px; /* Explicit size for SVG */
 }
 
 /******************************************************************************
@@ -94,7 +94,7 @@ sortable-tree-node > div:nth-child(2) {
 
 /* Collapse icon container */
 .tree__collapse {
-  color: transparent !important; /* Hide original icon color */
+  color: var(--treeview-icon-color); /* Set color for SVG stroke="currentColor" */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -108,32 +108,31 @@ sortable-tree-node > div:nth-child(2) {
 }
 .tree__collapse:hover { opacity: 1; }
 
-/* *** ADD THIS RULE TO HIDE THE DEFAULT SVG *** */
+/* Hide the default SVG icon from SortableTree */
 .tree__collapse > svg {
   display: none !important;
 }
-/* ******************************************* */
 
-
-/* Collapse icon itself (chevron via SVG mask) */
+/* Add chevron using ::before and content: url() */
 .tree__collapse::before {
-    content: ""; display: inline-block; width: 1em; height: 1em;
-    font-size: var(--st-collapse-icon-size);
-    background-color: var(--treeview-icon-color); /* Use specific variable */
-    -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
-    -webkit-mask-size: 100% 100%; mask-size: 100% 100%;
+    content: ""; /* Needs content property, value set below */
+    display: inline-block;
+    width: var(--st-collapse-icon-size);  /* Control size */
+    height: var(--st-collapse-icon-size);
+    /* No background or mask needed */
 }
+
 /* Chevron Right Icon for COLLAPSED state */
 sortable-tree-node:not([open]) > .tree__label > .tree__collapse::before,
 sortable-tree-node:not([open]) > .tree__collapse::before {
-   -webkit-mask-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>');
-   mask-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>');
+   /* Ensure SVG has stroke="currentColor" so it inherits the color from .tree__collapse */
+   content: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>');
 }
 /* Chevron Down Icon for EXPANDED state */
 sortable-tree-node[open] > .tree__label > .tree__collapse::before,
 sortable-tree-node[open] > .tree__collapse::before {
-   -webkit-mask-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>');
-   mask-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>');
+   /* Ensure SVG has stroke="currentColor" */
+   content: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>');
 }
 
 /* Hide collapse icon container if node has no children or is page */
