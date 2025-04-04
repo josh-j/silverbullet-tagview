@@ -1,17 +1,20 @@
 name: treeview
-version: 0.15
+# Increment version number
+version: 0.16
+# Add/Update description
+description: Displays a tree view of all tags in the space.
 assets:
   - "assets/**/*.*"
 functions:
   # API
   hide:
-    path: "./treeview.ts:hideTree"
+    path: "./treeview.ts:hideTree" # Assuming your main file is treeview.ts now
 
   show:
-    path: "./treeview.ts:showTree"
+    path: "./treeview.ts:showTree" # Assuming your main file is treeview.ts now
 
   showIfEnabled:
-    path: "./treeview.ts:showTreeIfEnabled"
+    path: "./treeview.ts:showTreeIfEnabled" # Assuming your main file is treeview.ts now
     events:
       - editor:init
       - editor:pageLoaded
@@ -20,8 +23,9 @@ functions:
 
   # User facing
   toggle:
-    path: "./treeview.ts:toggleTree"
+    path: "./treeview.ts:toggleTree" # Assuming your main file is treeview.ts now
     command:
-      name: "Tree View: Toggle"
+      # Optional: Update command name for clarity
+      name: "Tag Tree: Toggle"
       key: Ctrl-alt-b
       mac: Cmd-alt-b
