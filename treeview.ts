@@ -45,8 +45,8 @@ export async function showTreeIfEnabled() {
 }
 
 /**
- * Shows the hierarchical tag treeview, loading node icons from SVG files
- * and matching the desired appearance.
+ * Shows the hierarchical tag treeview with folder icons for header buttons
+ * and chevron icons for nodes.
  */
 export async function showTree() {
   const config: TagTreeViewConfig = await getPlugConfig(); // Use your config type
@@ -55,22 +55,22 @@ export async function showTree() {
     await hideTree();
   }
 
-  // Fetch necessary assets, including node chevron SVG content
+  // Fetch necessary assets, loading the correct icons
   try {
-      // Corrected Destructuring Syntax
       const [
         // CSS and JS
         sortableTreeCss,
         sortableTreeJs,
-        plugCss, // Should be treeview_css_tags_like_folders content
-        plugJs, // Should be treeview_js_tags_like_folders content
-        // Header Icons
-        iconHeaderCollapse, // chevron-right for Collapse All button
-        iconHeaderExpand,  // chevron-down for Expand All button
+        plugCss, // Should be treeview_css_final content
+        plugJs, // Should be treeview_js_final content
+        // Header Icons (Folder +/-)
+        iconHeaderCollapse, // Use folder-minus for Collapse All button
+        iconHeaderExpand,   // Use folder-plus for Expand All button
+        // Other Header Icons
         iconNavigation2, // Icon for Reveal Current Page
         iconRefresh, // Icon for Refresh
         iconXCircle, // Icon for Close
-        // Node Icons (Content loaded as strings)
+        // Node Icons (Chevrons - Content loaded as strings)
         nodeIconCollapsedSvg, // chevron-right SVG content for nodes
         nodeIconOpenSvg,      // chevron-down SVG content for nodes
         // Data
@@ -81,19 +81,18 @@ export async function showTree() {
         asset.readAsset(PLUG_NAME, "assets/sortable-tree/sortable-tree.js"),
         asset.readAsset(PLUG_NAME, "assets/treeview.css"),
         asset.readAsset(PLUG_NAME, "assets/treeview.js"),
-        // Header Icons (SVGs for buttons)
-        asset.readAsset(PLUG_NAME, "assets/icons/chevron-right.svg"),
-        asset.readAsset(PLUG_NAME, "assets/icons/chevron-down.svg"),
+        // Header Icons (Load folder icons)
+        asset.readAsset(PLUG_NAME, "assets/icons/folder-minus.svg"), // Load folder-minus
+        asset.readAsset(PLUG_NAME, "assets/icons/folder-plus.svg"),  // Load folder-plus
         asset.readAsset(PLUG_NAME, "assets/icons/navigation-2.svg"),
         asset.readAsset(PLUG_NAME, "assets/icons/refresh-cw.svg"),
         asset.readAsset(PLUG_NAME, "assets/icons/x-circle.svg"),
-        // Node Icons (Load SVG file *content*)
-        asset.readAsset(PLUG_NAME, "assets/icons/chevron-right.svg"), // Load content
-        asset.readAsset(PLUG_NAME, "assets/icons/chevron-down.svg"),  // Load content
+        // Node Icons (Load chevron SVG file *content*)
+        asset.readAsset(PLUG_NAME, "assets/icons/chevron-right.svg"), // Load chevron-right content
+        asset.readAsset(PLUG_NAME, "assets/icons/chevron-down.svg"),  // Load chevron-down content
         // Data
         editor.getCurrentPage(),
       ]);
-      // End of Correction
 
       // Fetch the hierarchical tag tree data
       const { nodes } = await getTagTree(config); // Use your API function
@@ -116,7 +115,7 @@ export async function showTree() {
       await editor.showPanel(
         config.position,
         config.size,
-        // Panel HTML - Use correct icons for header buttons
+        // Panel HTML - Use FOLDER icons for expand/collapse buttons
         `
           <link rel="stylesheet" href="/.client/main.css" />
           <style>
