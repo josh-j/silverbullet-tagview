@@ -60,35 +60,35 @@ function createTagTreeView(config) {
       } else {
         console.log("Folder clicked:", node.data.name);
         // If you want clicking anywhere on the folder label (not just the icon) to toggle it:
-        node.toggle();
+         node.toggle();
       }
     },
 
     /**
      * Renders the label HTML for a tag or folder node.
+     * Includes title, page count (for tags), and full path detail.
      * @param {NodeData} data - The data for the node.
      * @returns {string}
      */
-// Inside createTagTreeView function...
     renderLabel: (data) => {
-      const pageCountHtml = data.nodeType === 'tag' && typeof data.pageCount === 'number'
-        ? `<span class="treeview-node-pagecount">(${data.pageCount})</span>`
-        : ''; // Only show count for tags
+        const pageCountHtml = data.nodeType === 'tag' && typeof data.pageCount === 'number'
+          ? `<span class="treeview-node-pagecount">(${data.pageCount})</span>`
+          : ''; // Only show count for tags
 
-      // Add a separate span for the full path detail
-      const fullPathHtml = `<span class="treeview-fullpath-detail">#${data.name}</span>`;
+        // Add a separate span for the full path detail
+        const fullPathHtml = `<span class="treeview-fullpath-detail">#${data.name}</span>`;
 
-      // Combine title, count, and path detail within the main span
-      // We add a wrapper span with display: block to try and force path onto new line
-      return `
-        <span
-          data-node-type="${data.nodeType}"
-          title="${data.name}"
-          style="line-height: 1.2;" >  
-             ${data.title}${pageCountHtml}
-             <span style="display: block; font-size: 0.8em; opacity: 0.7; margin-left: 0;"> ${fullPathHtml} </span>
-        </span>`;
-    },
+        // Combine title, count, and path detail within the main span
+        // Added inline styles for basic layout attempt
+        return `
+          <span
+            data-node-type="${data.nodeType}"
+            title="${data.name}"
+            style="line-height: 1.2;" >
+               ${data.title}${pageCountHtml}
+               <span style="display: block; font-size: 0.8em; opacity: 0.7; margin-left: 0;"> ${fullPathHtml} </span>
+          </span>`;
+      },
   });
 }
 
