@@ -1,5 +1,5 @@
 import { asset, editor, system } from "@silverbulletmd/silverbullet/syscalls";
-import { getTagTree } from "./api.ts"; // Import getTagTree for hierarchical tags
+import { getTagTree } from "./api.ts"; // Import getTagTree for hierarchical tags + pages
 import {
   getCustomStyles,
   isTreeViewEnabled,
@@ -7,14 +7,12 @@ import {
   PLUG_NAME,
   Position,
   setTreeViewEnabled,
-  TagTreeViewConfig, // Import config type for tags
+  TagTreeViewConfig,
 } from "./config.ts";
 import { getPlugConfig } from "./config.ts";
 
-// Define the expected structure from index.queryObjects("tag",...)
-// Make sure this is also defined or imported in api.ts if needed there
-interface TagIndexEntry { name: string; page: string; [key: string]: any; }
-
+// No longer needed: Define TagIndexEntry here if it's not exported/imported from api.ts
+// interface TagIndexEntry { name: string; page: string; [key: string]: any; }
 
 let currentPosition: Position | undefined;
 
@@ -50,7 +48,7 @@ export async function showTreeIfEnabled() {
 }
 
 /**
- * Shows the hierarchical tag treeview and sets it to enabled.
+ * Shows the hierarchical tag treeview (with pages) and sets it to enabled.
  */
 export async function showTree() {
   const config: TagTreeViewConfig = await getPlugConfig();
@@ -59,6 +57,7 @@ export async function showTree() {
     await hideTree();
   }
 
+  // Fetch necessary assets
   const [
     sortableTreeCss, sortableTreeJs, plugCss, plugJs,
     iconFolderMinus, iconFolderPlus, iconRefresh, iconXCircle,
@@ -73,25 +72,26 @@ export async function showTree() {
     asset.readAsset(PLUG_NAME, "assets/icons/x-circle.svg"),
   ]);
 
+  // Fetch the hierarchical tag tree data including pages
   const { nodes } = await getTagTree(config);
   const customStyles = await getCustomStyles();
 
+  // Prepare config for the frontend JS
   const treeViewJsConfig = {
     nodes,
     treeElementId: "treeview-tree",
     dragAndDrop: { enabled: false },
   };
 
+  // Show the panel
   await editor.showPanel(
     config.position, config.size,
     // Panel HTML
     `
       <link rel="stylesheet" href="/.client/main.css" />
       <style>
-        ${sortableTreeCss} ${plugCss}
-        .tree__collapse { /* Ensure visible */ }
-        .treeview-node-pagecount { font-size: 0.8em; margin-left: 6px; opacity: 0.7; display: inline-block; vertical-align: baseline; }
-        .tree__label > span[data-node-type="folder"] {}
+        ${sortableTreeCss}
+        ${plugCss} /* Use the latest CSS from treeview_css_layout_fixes_v2 */
         ${customStyles ?? ""}
       </style>
       <div class="treeview-root">
@@ -109,30 +109,16 @@ export async function showTree() {
         </div>
         <div id="${treeViewJsConfig.treeElementId}"></div>
       </div>`,
-    // Panel JavaScript (with debugging)
+    // Panel JavaScript - Simplified, removed debug logs/try-catch
     `
-      try {
-        console.log("Panel JS: Loading SortableTree..."); ${sortableTreeJs} console.log("Panel JS: SortableTree loaded.");
-        console.log("Panel JS: Loading plugJs (treeview.js)..."); ${plugJs} console.log("Panel JS: plugJs loaded.");
-        console.log("Panel JS: Checking for initializeTreeViewPanel function...");
-        if (typeof initializeTreeViewPanel === 'function') {
-          console.log("Panel JS: Found initializeTreeViewPanel. Preparing config...");
-          const treeViewPanelConfig = ${JSON.stringify(treeViewJsConfig)};
-          console.log("Panel JS: Config prepared:", treeViewPanelConfig);
-          console.log("Panel JS: Calling initializeTreeViewPanel...");
-          initializeTreeViewPanel(treeViewPanelConfig);
-          console.log("Panel JS: initializeTreeViewPanel finished.");
-        } else {
-          console.error("Panel JS: ERROR - initializeTreeViewPanel function not found!");
-          const errorDiv = document.createElement('div'); errorDiv.style.color = 'red';
-          errorDiv.textContent = 'Error: initializeTreeViewPanel function not found in assets/treeview.js!';
-          document.body.prepend(errorDiv);
-        }
-      } catch (e) {
-        console.error("Panel JS: ERROR executing panel script - ", e.name, e.message, e.stack);
-        const errorDiv = document.createElement('div'); errorDiv.style.color = 'red';
-        errorDiv.textContent = 'Error initializing panel script: ' + e.message + ' (See console for details)';
-        document.body.prepend(errorDiv);
+      ${sortableTreeJs}
+      ${plugJs}
+      // Ensure initializeTreeViewPanel is defined in plugJs
+      if (typeof initializeTreeViewPanel === 'function') {
+        initializeTreeViewPanel(${JSON.stringify(treeViewJsConfig)});
+      } else {
+        console.error("Error: initializeTreeViewPanel is not defined!");
+        // Optionally display an error message in the panel body
       }
     `
   );
@@ -141,46 +127,5 @@ export async function showTree() {
   currentPosition = config.position;
 }
 
-// --- NEW FUNCTION ---
-/**
- * Fetches a list of unique page names associated with a specific tag.
- * @param tagName The tag to search for.
- * @returns A promise resolving to an array of page names.
- */
-export async function getPagesForTag(tagName: string): Promise<string[]> {
-  if (!tagName) {
-    console.warn("Backend: getPagesForTag called with empty tagName");
-    return [];
-  }
-  console.log(`Backend: Fetching pages for tag: ${tagName}`);
-  try {
-    // Fetch all tag index entries
-    const allTagEntries: TagIndexEntry[] = await system.invokeFunction(
-      "index.queryObjects",
-      "tag", // Query type
-      {}     // No filters
-    );
-
-    // Filter entries for the specific tag and collect unique page names
-    const pages = new Set<string>();
-    for (const entry of allTagEntries) {
-      // Ensure entry is valid and matches the requested tag name
-      if (entry && entry.name === tagName && typeof entry.page === 'string' && entry.page) {
-        pages.add(entry.page);
-      }
-    }
-
-    // Convert Set to sorted array
-    const pageList = Array.from(pages).sort();
-    console.log(`Backend: Found ${pageList.length} pages for tag ${tagName}`);
-    return pageList;
-
-  } catch (e) {
-    console.error(`Backend: Error fetching pages for tag ${tagName}:`, e);
-    editor.flashNotification(`Error fetching pages for tag: ${e.message}`, "error");
-    return []; // Return empty array on error
-  }
-}
-
-// --- navigateToTagQuery function is NO LONGER NEEDED ---
-// export async function navigateToTagQuery(tagName: string) { ... }
+// REMOVED getPagesForTag function - no longer needed
+// REMOVED navigateToTagQuery function - no longer needed
