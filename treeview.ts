@@ -55,15 +55,14 @@ export async function showTree() {
   }
 
   // Fetch necessary assets, ensuring all icons are loaded
-  // Renamed variables for clarity
-  let iconChevronDown: string, iconChevronRight: string, iconNavigation2: string, iconRefresh: string, iconXCircle: string;
   try {
-      [
+      // *** CORRECTED Destructuring Syntax ***
+      const [
         // CSS and JS first
-        const sortableTreeCss,
-        const sortableTreeJs,
-        const plugCss, // Should be treeview_css_final_appearance content
-        const plugJs, // Should be treeview_js_final_appearance content
+        sortableTreeCss,  // No 'const' inside
+        sortableTreeJs,
+        plugCss,
+        plugJs,
         // Icons
         iconChevronRight, // Use chevron-right for Collapse All
         iconChevronDown,  // Use chevron-down for Expand All
@@ -71,7 +70,7 @@ export async function showTree() {
         iconRefresh, // Icon for Refresh
         iconXCircle, // Icon for Close
         // Data
-        const currentPage
+        currentPage
       ] = await Promise.all([
         // Assets
         asset.readAsset(PLUG_NAME, "assets/sortable-tree/sortable-tree.css"),
@@ -87,6 +86,7 @@ export async function showTree() {
         // Data
         editor.getCurrentPage(),
       ]);
+      // *** End of Correction ***
 
       // Fetch the hierarchical tag tree data
       const { nodes } = await getTagTree(config); // Use your API function
