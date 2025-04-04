@@ -1,146 +1,149 @@
 /**
- * @typedef {import("../api.ts").TreeNode} TreeNode
+ * @typedef {import("../api.ts").TagData} TagData // Use TagData type from api.ts
  */
 
 /**
- * @typedef SortableTreeNode
+ * Represents a node in the SortableTree specific to tags.
+ * @typedef SortableTagTreeNode
  * @type {Object}
- * @property {TreeNode["data"]} data
+ * @property {TagData} data - The tag data associated with the node.
  */
 
 /**
- *
- * @typedef TreeViewConfig
+ * Configuration for the Tag TreeView panel.
+ * @typedef TagTreeViewJsConfig
  * @type {Object}
- * @property {string} currentPage - the current page shown in SilverBullet.
- * @property {TreeNode[]} nodes - a tree of all pages in the current space.
- * @property {Object} dragAndDrop - drag and drop related config
- * @property {boolean} dragAndDrop.enabled - true if drag and drop is enabled
- * @property {boolean} dragAndDrop.confirmOnRename - true if a confirmation should be shown
- *  when a node is dragged and dropped.
-*/
+ * @property {Array<{data: TagData, nodes: []}>} nodes - A flat list of tag nodes.
+ * @property {string} treeElementId - The ID of the HTML element to render the tree in.
+ * @property {Object} dragAndDrop - Drag and drop configuration (should be disabled).
+ * @property {boolean} dragAndDrop.enabled - Should always be false for tags.
+ */
 
 
-const TREE_STATE_ID = "treeview";
+const TREE_STATE_ID = "treeview"; // Keep state ID, though collapse state less relevant for flat list
 
 /**
- * Initializes the TreeView's `SortableTree` instance.
- * @param {TreeViewConfig} config
+ * Initializes the Tag TreeView's `SortableTree` instance.
+ * @param {TagTreeViewJsConfig} config
  * @returns {SortableTree}
  */
-function createTreeView(config) {
+function createTagTreeView(config) {
+  // Note: SortableTree might still add D&D classes/attributes even if disabled.
+  // The key is that the handlers (`confirm`) are removed and `disableSorting` is true.
   return new SortableTree({
-    nodes: config.nodes,
-    disableSorting: !config.dragAndDrop.enabled,
+    nodes: config.nodes, // Use the flat list of tag nodes
+    disableSorting: true, // Disable sorting/D&D for tags
     element: document.getElementById(config.treeElementId),
-    stateId: TREE_STATE_ID,
-    initCollapseLevel: 0,
-    lockRootLevel: false,
+    stateId: TREE_STATE_ID, // Keep for potential future use (e.g., remembering scroll)
+    initCollapseLevel: 0, // Not very relevant for a flat list
+    lockRootLevel: true, // Root cannot be targeted (good practice)
 
     /**
-     * @param {SortableTreeNode} movedNode
-     * @param {SortableTreeNode} targetParentNode
+     * @param {SortableTagTreeNode} movedNode
+     * @param {SortableTagTreeNode} targetParentNode
      */
-    confirm: async (movedNode, targetParentNode) => {
-      const oldPrefix = movedNode.data.name;
-      const newPrefix = targetParentNode ? `${targetParentNode.data.name}/${movedNode.data.title}` : movedNode.data.title;
+    // REMOVED: confirm handler - D&D is not applicable for tags in this view.
+    // confirm: async (movedNode, targetParentNode) => { ... },
 
-      if (oldPrefix === newPrefix) {
-        return;
-      }
-
-      const success = await syscall("system.invokeFunction", "index.renamePrefixCommand", {
-        oldPrefix,
-        newPrefix,
-        disableConfirmation: !config.dragAndDrop.confirmOnRename,
-      });
-
-      if (success && config.currentPage.indexOf(oldPrefix) === 0) {
-        // If this renamed the current page, navigate to it at it's updated name.
-        await syscall("editor.navigate", config.currentPage.replace(oldPrefix, newPrefix), false, false);
-      }
-
-      return success;
-    },
-
+    // onChange is likely not needed without D&D or hierarchy, but harmless.
+    // It triggers a refresh if node state changes (e.g., collapse, though unlikely here).
     onChange: async () => {
-      await syscall("system.invokeFunction", "treeview.show");
+      // Optional: Could remove if performance is critical and no state changes expected.
+      // await syscall("system.invokeFunction", "treeview.show");
     },
 
     /**
-     * @param {SortableTreeNode} node
+     * Handles clicking on a tag node.
+     * @param {Event} _event
+     * @param {SortableTagTreeNode} node
      */
     onClick: async (_event, node) => {
-      await syscall("editor.navigate", node.data.name, false, false);
+      // Navigate to a query for the clicked tag
+      console.log("Tag clicked:", node.data.name);
+      // Use query.set to change the main query bar and filter
+      await syscall("editor.runCommand", "query.set", `tag: ${node.data.name}`);
+      // Alternative: Trigger a search in the search panel
+      // await syscall("editor.runCommand", "search.search", `tag:${node.data.name}`);
     },
 
     /**
-     * @param {SortableTreeNode["data"]} data
+     * Renders the label HTML for a tag node.
+     * @param {TagData} data - The data for the tag node.
      * @returns {string}
      */
-    renderLabel: (data) => `
-      <span
-        data-current-page="${JSON.stringify(data.isCurrentPage || false)}"
-        data-node-type="${data.nodeType}"
-        data-permission="${data.perm}"
-        title="${data.name}" >
-        ${data.title}
-      </span>`
-    ,
+    renderLabel: (data) => {
+      // data.name = Full tag name (e.g., "project/alpha")
+      // data.title = Display name (same as name for tags)
+      // data.nodeType = "tag"
+      // data.pageCount = Number of pages with this tag (optional, from backend)
+
+      // Removed data-current-page (not applicable)
+      // Removed data-permission (assuming 'perm' is not on TagData)
+      // Added data-node-type="tag"
+      // Added page count display if available
+      const pageCountHtml = typeof data.pageCount === 'number'
+        ? `<span class="treeview-node-pagecount">(${data.pageCount})</span>`
+        : '';
+
+      return `
+        <span
+          data-node-type="${data.nodeType}"
+          title="${data.name}" >
+          ${data.title}${pageCountHtml}
+        </span>`;
+    },
   });
 }
 
 /**
- * Initializes the tree view and it's action bar.
- * @param {TreeViewConfig} config
+ * Initializes the tag tree view panel and its action bar.
+ * @param {TagTreeViewJsConfig} config
  */
 // deno-lint-ignore no-unused-vars
 function initializeTreeViewPanel(config) {
-  const tree = createTreeView(config);
+  // Ensure dragAndDrop is explicitly disabled in the config passed from main.ts
+  config.dragAndDrop = { enabled: false };
+
+  const tree = createTagTreeView(config); // Call the renamed creation function
+
   const handleAction = (action) => {
     switch (action) {
-      case "collapse-all": {
-        document.querySelectorAll("sortable-tree-node[open='true']").forEach((node) => node.collapse(true));
-        return true;
-      }
-      case "expand-all": {
-        document.querySelectorAll("sortable-tree-node:not([open='true'])").forEach((node) => node.collapse(false));
-        return true;
-      }
+      // REMOVED: collapse-all (not applicable to flat list)
+      // case "collapse-all": { ... }
+      // REMOVED: expand-all (not applicable to flat list)
+      // case "expand-all": { ... }
       case "close-panel": {
-        syscall("system.invokeFunction", "treeview.hide");
+        syscall("system.invokeFunction", "treeview.hide"); // Use configured plug name's functions
         return true;
       }
       case "refresh": {
-        syscall("system.invokeFunction", "treeview.show");
+        // Clear saved state before refreshing to avoid issues if node list changes significantly
+        tree.clearState();
+        syscall("system.invokeFunction", "treeview.show"); // Use configured plug name's functions
         return true;
       }
-      case "reveal-current-page": {
-        const currentNode = tree.findNode("isCurrentPage", true);
-        if (currentNode) {
-          currentNode.reveal();
-          currentNode.scrollIntoView({
-            behavior: "auto",
-            block: "nearest",
-            inline: "nearest",
-          });
-          return true;
-        }
-        return false;
-      }
+      // REMOVED: reveal-current-page (not applicable)
+      // case "reveal-current-page": { ... }
     }
-
     return false;
   }
 
-  handleAction("reveal-current-page");
+  // REMOVED: Initial call to handleAction("reveal-current-page");
 
+  // Add listeners only to the buttons that still exist (refresh, close-panel)
   document.querySelectorAll("[data-treeview-action]").forEach((el) => {
-    el.addEventListener("click", (e) => {
-      if (handleAction(el.dataset["treeviewAction"])) {
-        e.stopPropagation();
-        e.preventDefault();
-      }
-    });
-  })
+    const action = el.dataset["treeviewAction"];
+    // Only attach listener if the action is still handled
+    if (action === "refresh" || action === "close-panel") {
+      el.addEventListener("click", (e) => {
+        if (handleAction(action)) {
+          e.stopPropagation();
+          e.preventDefault();
+        }
+      });
+    } else {
+      // Optional: Hide or remove buttons for unsupported actions
+      // el.style.display = 'none';
+    }
+  });
 }
