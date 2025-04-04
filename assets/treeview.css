@@ -116,17 +116,6 @@ sortable-tree-node > div:nth-child(2) {
 /* *** REMOVED ::before styles *** */
 /* *** REMOVED rule hiding content like .tree__collapse > * *** */
 
-
-/* Hide collapse icon container if node has no children or is page */
-/* This rule remains important */
-sortable-tree-node > div:nth-child(2):empty + span.tree__collapse,
-sortable-tree-node[data-node-type="page"] > span.tree__collapse,
-sortable-tree-node[data-node-type="page"] > div:first-child > span.tree__collapse
-{
-   visibility: hidden;
-}
-
-
 /* Node Content Span (Text, Icon, Count) */
 .tree__label > span {
   border: var(--treeview-node-border-width) solid transparent;
