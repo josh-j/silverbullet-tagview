@@ -13,7 +13,7 @@ html {
 .treeview-root {
   /* SortableTree variables */
   --st-label-height: auto;
-  --st-subnodes-padding-left: 1.25rem;
+  --st-subnodes-padding-left: 1.25rem; /* Indentation for children */
   --st-collapse-icon-height: 1.5em; /* Controls height of the icon container */
   --st-collapse-icon-width: 1.25rem; /* Controls width of the icon container */
   --st-collapse-icon-size: 1.1em; /* Controls font size of the +/- icon */
@@ -61,7 +61,9 @@ html, body {
  *****************************************************************************/
 #treeview-tree {
   flex-grow: 1; overflow-y: auto; overflow-x: hidden;
-  padding: 0.25rem 0.5rem 1rem 0.5rem; min-height: 0;
+  /* Adjust overall container padding if needed, but root padding is handled by .tree now */
+  padding: 0.25rem 0.5rem 1rem 0.5rem;
+  min-height: 0;
 }
 
 /******************************************************************************
@@ -70,11 +72,14 @@ html, body {
 
 /* Main tree container */
 .tree {
-	display: flex; flex-direction: column;
-  margin: 0; padding-left: 0;
+	display: flex;
+	flex-direction: column;
+  margin: 0;
+  /* *** ADD PADDING HERE for root node icons *** */
+  padding-left: 1rem; /* Adjust value as needed (e.g., 1.25rem) */
 }
 
-/* Ensure subnode container gets correct padding */
+/* Ensure subnode container gets correct relative padding */
 sortable-tree-node > div:nth-child(2) {
     padding-left: var(--st-subnodes-padding-left);
     box-sizing: border-box;
@@ -87,7 +92,7 @@ sortable-tree-node > div:nth-child(2) {
 .tree__label {
   display: flex;
   align-items: center;
-  padding: 0;
+  padding: 0; /* Remove padding from label div itself */
   position: relative;
   min-height: 1.8em;
 }
@@ -107,14 +112,25 @@ sortable-tree-node > div:nth-child(2) {
   font-weight: bold;
   line-height: 1; /* Adjust line height for vertical centering */
   text-align: center;
-  /* Remove position relative if not needed for ::before */
-  /* position: relative; */
+  /* Ensure the icon container itself doesn't have extra margin/padding */
+  margin: 0;
+  padding: 0;
 }
 
 .tree__collapse:hover { opacity: 1; }
 
-/* *** REMOVED ::before styles *** */
-/* *** REMOVED rule hiding content like .tree__collapse > * *** */
+
+/* Hide collapse icon container if node has no children or is page */
+/* Keep this block commented out or remove it if icons appeared after commenting out */
+/*
+sortable-tree-node > div:nth-child(2):empty + span.tree__collapse,
+sortable-tree-node[data-node-type="page"] > span.tree__collapse,
+sortable-tree-node[data-node-type="page"] > div:first-child > span.tree__collapse
+{
+   visibility: hidden;
+}
+*/
+
 
 /* Node Content Span (Text, Icon, Count) */
 .tree__label > span {
