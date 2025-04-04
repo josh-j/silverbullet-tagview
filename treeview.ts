@@ -1,5 +1,5 @@
 import { asset, editor, system } from "@silverbulletmd/silverbullet/syscalls";
-import { getTagTree } from "./api.ts"; // Import getTagTree for hierarchical tags + pages
+import { getTagTree } from "./api.ts"; // Using getTagTree for your plug
 import {
   getCustomStyles,
   isTreeViewEnabled,
@@ -7,7 +7,7 @@ import {
   PLUG_NAME,
   Position,
   setTreeViewEnabled,
-  TagTreeViewConfig,
+  TagTreeViewConfig, // Assuming you still use TagTreeViewConfig
 } from "./config.ts";
 import { getPlugConfig } from "./config.ts";
 
@@ -45,65 +45,76 @@ export async function showTreeIfEnabled() {
 }
 
 /**
- * Shows the hierarchical tag treeview (with pages) and sets it to enabled.
+ * Shows the hierarchical tag treeview, matching the example's appearance.
  */
 export async function showTree() {
-  const config: TagTreeViewConfig = await getPlugConfig();
+  const config: TagTreeViewConfig = await getPlugConfig(); // Use your config type
 
   if (currentPosition && config.position !== currentPosition) {
     await hideTree();
   }
 
-  // Fetch necessary assets
+  // Fetch necessary assets, including icons for header buttons
   const [
-    sortableTreeCss, sortableTreeJs, plugCss, plugJs,
-    iconRefresh, iconXCircle,
-    currentPage // *** Get current page name ***
+    sortableTreeCss,
+    sortableTreeJs,
+    plugCss, // Use treeview_css_final_appearance
+    plugJs, // Use treeview_js_highlighting
+    iconFolderMinus, // Icon for Collapse All
+    iconFolderPlus, // Icon for Expand All
+    iconNavigation2, // Icon for Reveal Current Page
+    iconRefresh, // Icon for Refresh
+    iconXCircle, // Icon for Close
+    currentPage
   ] = await Promise.all([
     asset.readAsset(PLUG_NAME, "assets/sortable-tree/sortable-tree.css"),
     asset.readAsset(PLUG_NAME, "assets/sortable-tree/sortable-tree.js"),
-    asset.readAsset(PLUG_NAME, "assets/treeview.css"), // Use the latest CSS
-    asset.readAsset(PLUG_NAME, "assets/treeview.js"), // Use the latest JS
+    asset.readAsset(PLUG_NAME, "assets/treeview.css"), // Your updated CSS
+    asset.readAsset(PLUG_NAME, "assets/treeview.js"), // Your updated JS
+    asset.readAsset(PLUG_NAME, "assets/icons/folder-minus.svg"), // Load needed icon
+    asset.readAsset(PLUG_NAME, "assets/icons/folder-plus.svg"), // Load needed icon
+    asset.readAsset(PLUG_NAME, "assets/icons/navigation-2.svg"), // Load needed icon
     asset.readAsset(PLUG_NAME, "assets/icons/refresh-cw.svg"),
     asset.readAsset(PLUG_NAME, "assets/icons/x-circle.svg"),
-    editor.getCurrentPage(), // *** Get current page syscall ***
+    editor.getCurrentPage(),
   ]);
 
-  // Fetch the hierarchical tag tree data including pages
-  const { nodes } = await getTagTree(config);
+  // Fetch the hierarchical tag tree data
+  const { nodes } = await getTagTree(config); // Use your API function
   const customStyles = await getCustomStyles();
 
   // Prepare config for the frontend JS
   const treeViewJsConfig = {
     nodes,
+    currentPage, // Pass current page for highlighting
     treeElementId: "treeview-tree",
-    dragAndDrop: { enabled: false },
-    currentPage: currentPage, // *** Add currentPage to config ***
+    // Keep D&D disabled for tag view unless you implement renaming logic
+    dragAndDrop: {
+      enabled: false,
+      // confirmOnRename: config.dragAndDrop.confirmOnRename // Only if D&D enabled
+    },
   };
 
-  // Define header buttons (using text placeholders or other icons)
-  const expandAllButton = `<button type="button" data-treeview-action="expand-all" title="Expand all">[+]</button>`;
-  const collapseAllButton = `<button type="button" data-treeview-action="collapse-all" title="Collapse all">[-]</button>`;
-
-
-  // Show the panel
+  // Show the panel with header matching the example
   await editor.showPanel(
-    config.position, config.size,
+    config.position,
+    config.size,
     // Panel HTML
     `
       <link rel="stylesheet" href="/.client/main.css" />
       <style>
         ${sortableTreeCss}
-        ${plugCss} /* Use the LATEST modified CSS */
+        ${plugCss} /* Use treeview_css_final_appearance */
         ${customStyles ?? ""}
       </style>
       <div class="treeview-root">
         <div class="treeview-header">
           <div class="treeview-actions">
             <div class="treeview-actions-left">
-              ${expandAllButton}
-              ${collapseAllButton}
-              <button type="button" data-treeview-action="refresh" title="Refresh tags">${iconRefresh}</button>
+              <button type="button" data-treeview-action="expand-all" title="Expand all">${iconFolderPlus}</button>
+              <button type="button" data-treeview-action="collapse-all" title="Collapse all">${iconFolderMinus}</button>
+              <button type="button" data-treeview-action="reveal-current-page" title="Reveal current page">${iconNavigation2}</button>
+              <button type="button" data-treeview-action="refresh" title="Refresh treeview">${iconRefresh}</button>
             </div>
             <div class="treeview-actions-right">
               <button type="button" data-treeview-action="close-panel" title="Close tree">${iconXCircle}</button>
@@ -112,22 +123,19 @@ export async function showTree() {
         </div>
         <div id="${treeViewJsConfig.treeElementId}"></div>
       </div>`,
-    // Panel JavaScript - Use LATEST modified JS
+    // Panel JavaScript
     `
       ${sortableTreeJs}
-      ${plugJs}
-      // Ensure initializeTreeViewPanel is defined in plugJs
+      ${plugJs} // Use treeview_js_highlighting
+      // Ensure initializeTreeViewPanel is defined and pass the config
       if (typeof initializeTreeViewPanel === 'function') {
-        // Pass the config including currentPage
         initializeTreeViewPanel(${JSON.stringify(treeViewJsConfig)});
       } else {
         console.error("Error: initializeTreeViewPanel is not defined!");
       }
-    `
+    `,
   );
 
   await setTreeViewEnabled(true);
   currentPosition = config.position;
 }
-
-// ... rest of the file

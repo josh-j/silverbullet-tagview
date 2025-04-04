@@ -115,8 +115,7 @@ html, body {
 	display: flex;
 	flex-direction: column;
   margin: 0.25rem 0.5rem 1rem; /* Example's margin */
-  /* *** ADJUST PADDING HERE *** */
-  /* Add slightly more padding than the icon container width */
+  /* Adjust padding to prevent icon cutoff */
   padding-left: calc(var(--st-collapse-icon-width) + 0.25rem); /* e.g., 1.25rem + 0.25rem = 1.5rem */
 }
 
@@ -154,8 +153,7 @@ sortable-tree-node > div:nth-child(2) {
   text-align: center;
   margin: 0;
   padding: 0;
-  /* *** ADD NEGATIVE MARGIN TO PULL ICON LEFT *** */
-  /* This pulls the container left by its own width, aligning icon with the edge */
+  /* Pull icon left to align with edge of padding */
   margin-left: calc(-1 * var(--st-collapse-icon-width));
 }
 
@@ -163,7 +161,7 @@ sortable-tree-node > div:nth-child(2) {
 
 
 /* Hide collapse icon container if node has no children or is page */
-/* KEEP THIS COMMENTED OUT / REMOVED to ensure icons show */
+/* KEEP THIS COMMENTED OUT / REMOVED */
 /*
 sortable-tree-node > div:nth-child(2):empty + span.tree__collapse,
 sortable-tree-node[data-node-type="page"] > span.tree__collapse,
@@ -297,3 +295,4 @@ sortable-tree-node[data-node-type="page"] > div:first-child > span.tree__collaps
 .tree__node--drop-inside > .tree__label > span[data-current-page="true"] {
 	color: var(--treeview-current-page-color);
 }
+
