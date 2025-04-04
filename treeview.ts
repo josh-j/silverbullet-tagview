@@ -96,38 +96,32 @@ export async function showTree() {
       const { nodes } = await getTagTree(config); // Use your API function
       const customStyles = await getCustomStyles();
 
-      // Prepare config for the frontend JS, including node icon SVG content
-      const treeViewJsConfig = {
+      const treeViewConfig = {
         nodes,
         currentPage,
         treeElementId: "treeview-tree",
-        dragAndDrop: { enabled: false },
-        // *** Pass SVG content for node icons ***
-        nodeIcons: {
-            collapsed: nodeIconCollapsedSvg, // Pass chevron-right content
-            open: nodeIconOpenSvg           // Pass chevron-down content
-        }
-        // **************************************
+        dragAndDrop: {
+          ...config.dragAndDrop,
+          enabled: config.dragAndDrop.enabled,
+        },
       };
 
-      // Show the panel
       await editor.showPanel(
         config.position,
         config.size,
-        // Panel HTML - Use correct icons for header buttons
         `
           <link rel="stylesheet" href="/.client/main.css" />
           <style>
             ${sortableTreeCss}
-            ${plugCss} /* CSS for styling JS SVG icons */
+            ${plugCss}
             ${customStyles ?? ""}
           </style>
           <div class="treeview-root">
             <div class="treeview-header">
               <div class="treeview-actions">
                 <div class="treeview-actions-left">
-                  <button type="button" data-treeview-action="expand-all" title="Expand all">${iconHeaderExpand}</button>
-                  <button type="button" data-treeview-action="collapse-all" title="Collapse all">${iconHeaderCollapse}</button>
+                  <button type="button" data-treeview-action="expand-all" title="Expand all">${iconFolderPlus}</button>
+                  <button type="button" data-treeview-action="collapse-all" title="Collapse all">${iconFolderMinus}</button>
                   <button type="button" data-treeview-action="reveal-current-page" title="Reveal current page">${iconNavigation2}</button>
                   <button type="button" data-treeview-action="refresh" title="Refresh treeview">${iconRefresh}</button>
                 </div>
@@ -136,18 +130,12 @@ export async function showTree() {
                 </div>
               </div>
             </div>
-            <div id="${treeViewJsConfig.treeElementId}"></div>
+            <div id="${treeViewConfig.treeElementId}"></div>
           </div>`,
-        // Panel JavaScript
         `
           ${sortableTreeJs}
-          ${plugJs} // JS needs to use config.nodeIcons
-          // Ensure initializeTreeViewPanel is defined and pass the config
-          if (typeof initializeTreeViewPanel === 'function') {
-            initializeTreeViewPanel(${JSON.stringify(treeViewJsConfig)});
-          } else {
-            console.error("Error: initializeTreeViewPanel is not defined!");
-          }
+          ${plugJs}
+          initializeTreeViewPanel(${JSON.stringify(treeViewConfig)});
         `,
       );
 
