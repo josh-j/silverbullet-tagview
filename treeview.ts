@@ -136,7 +136,7 @@ export async function showTree() {
         `
           ${sortableTreeJs}
           ${plugJs}
-          initializeTreeViewPanel(${JSON.stringify(TagTreeViewConfig)});
+          initializeTreeViewPanel(${JSON.stringify(treeViewConfig)});
         `,
       );
 
