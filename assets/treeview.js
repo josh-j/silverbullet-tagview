@@ -89,8 +89,6 @@ function createTagTreeView(config) {
              <span style="display: block; font-size: 0.8em; opacity: 0.7; margin-left: 0;"> ${fullPathHtml} </span>
         </span>`;
     },
-    // ... rest of createTagTreeView/span>`;
-    },
   });
 }
 
