@@ -33,7 +33,7 @@ function createTagTreeView(config) {
     disableSorting: true, // Keep D&D disabled
     element: document.getElementById(config.treeElementId),
     stateId: TREE_STATE_ID, // State now relevant for collapse/expand
-    initCollapseLevel: 1, // Start with only root nodes expanded (adjust as needed)
+    initCollapseLevel: 1, // Start with only root nodes expanded
     lockRootLevel: true,
 
     // No 'confirm' handler needed
@@ -53,7 +53,7 @@ function createTagTreeView(config) {
      */
     onClick: async (_event, node) => {
       // Only run the query if it's an actual 'tag' node.
-      // Clicking a 'folder' node should just toggle it (handled by SortableTree's default behavior on the collapse icon).
+      // Clicking a 'folder' node should just toggle it.
       if (node.data.nodeType === 'tag') {
         console.log("Tag clicked:", node.data.name);
         await syscall("editor.runCommand", "query.set", `tag:${node.data.name}`);
@@ -66,7 +66,7 @@ function createTagTreeView(config) {
 
     /**
      * Renders the label HTML for a tag or folder node.
-     * Includes title, page count (for tags), and full path detail.
+     * Includes title and page count (for tags).
      * @param {NodeData} data - The data for the node.
      * @returns {string}
      */
@@ -75,15 +75,15 @@ function createTagTreeView(config) {
           ? `<span class="treeview-node-pagecount">(${data.pageCount})</span>`
           : ''; // Only show count for tags
 
-        // Add a separate span for the full path detail
-        const fullPathHtml = `<span class="treeview-fullpath-detail">#${data.name}</span>`;
-
-        // Combine title, count, and path detail within the main span
-        // Added inline styles for basic layout attempt
+        // Return only title and page count inside the main span
+        // Removed the full path detail span and associated inline styles
         return `
           <span
-            data-node-type="<span class="math-inline">\{data\.nodeType\}"
-    },
+            data-node-type="${data.nodeType}"
+            title="${data.name}" >
+             ${data.title}${pageCountHtml}
+          </span>`;
+      },
   });
 }
 
