@@ -7,7 +7,7 @@ import {
   PLUG_NAME,
   Position,
   setTreeViewEnabled,
-  TagTreeViewConfig, // Assuming you still use TagTreeViewConfig
+  type TagTreeViewConfig, // Assuming you still use TagTreeViewConfig
 } from "./config.ts";
 import { getPlugConfig } from "./config.ts";
 
