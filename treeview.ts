@@ -69,8 +69,8 @@ export async function showTree() {
         iconRefresh, // Icon for Refresh
         iconXCircle, // Icon for Close
         // Node Icons (Content loaded as strings)
-        nodeIconCollapsedSvg, // chevron-right SVG content for nodes
-        nodeIconOpenSvg,      // chevron-down SVG content for nodes
+        iconFolderCollapsed, // chevron-right SVG content for nodes
+        iconFolderOpen,      // chevron-down SVG content for nodes
         // Data
         currentPage
       ] = await Promise.all([
@@ -135,7 +135,7 @@ export async function showTree() {
         `
           ${sortableTreeJs}
           ${plugJs}
-          initializeTreeViewPanel(${JSON.stringify(treeViewConfig)});
+          initializeTreeViewPanel(${JSON.stringify(TagTreeViewConfig)});
         `,
       );
 
