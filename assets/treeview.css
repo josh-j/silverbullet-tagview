@@ -1,82 +1,130 @@
 /******************************************************************************
- * Page variables
+ * Page variables - Adapted from Example
  *****************************************************************************/
 html {
-  --treeview-node-border-width: 1px;
-  --treeview-node-border-radius: var(--border-radius);
-  --treeview-page-color: var(--text-color);
+  /* Using example's border approach */
+  --treeview-node-border-width: 2px; /* Example uses 2px */
+  --treeview-node-border-radius: 5px; /* Example uses 5px */
+
+  /* Define colors similar to example, mapping to SB vars where possible */
+  /* You might need to adjust these if the SB vars aren't defined or don't match */
+  --treeview-page-color: var(--text-color); /* Default text */
+  --treeview-page-background-color: var(--subtle-background-color); /* Use subtle for default bg */
+  --treeview-page-border-color: transparent; /* Start transparent */
+
+  /* Folders/Tags might be styled differently if needed, using defaults for now */
   --treeview-folder-color: var(--text-color);
+  --treeview-folder-background-color: var(--subtle-background-color);
+  --treeview-folder-border-color: transparent;
+
   --treeview-tag-color: var(--text-color);
+  --treeview-tag-background-color: var(--subtle-background-color);
+  --treeview-tag-border-color: transparent;
+
+  /* Style for the currently viewed page (requires JS to set data-current-page) */
+  --treeview-current-page-color: var(--accent-text-color, #eee); /* Fallback color */
+	--treeview-current-page-background-color: var(--ui-accent-color);
+  --treeview-current-page-border-color: var(--ui-accent-color);
+
+  /* Icon Color */
   --treeview-icon-color: var(--text-muted); /* Color for default +/- icon */
+
 }
 
 .treeview-root {
-  /* SortableTree variables */
+  /* SortableTree variables - Using example's values */
   --st-label-height: auto;
-  --st-subnodes-padding-left: 1.25rem; /* Indentation for children */
-  --st-collapse-icon-height: 1.5em; /* Controls height of the icon container */
-  --st-collapse-icon-width: 1.25rem; /* Controls width of the icon container */
-  --st-collapse-icon-size: 1.1em; /* Controls font size of the +/- icon */
+  --st-subnodes-padding-left: 1.25rem;
+  --st-collapse-icon-height: 2.1rem; /* Example's value */
+  --st-collapse-icon-width: 1.25rem;
+  --st-collapse-icon-size: 1rem; /* Example's value for +/- font size */
 }
 
 /******************************************************************************
  * Page & Scrolling Styles
  *****************************************************************************/
 html, body {
-  margin: 0; padding: 0; height: 100vh; overflow: hidden;
+  margin: 0; padding: 0; height: 100vh; overflow: hidden; /* Keep overflow hidden */
   background-color: var(--root-background-color);
   color: var(--text-color); font-family: var(--ui-font);
 }
 .treeview-root {
   height: 100%; display: flex; flex-direction: column;
   overflow: hidden; box-sizing: border-box;
+  background-color: var(--root-background-color); /* Match example */
 }
 
 /******************************************************************************
- * Header styles & Button Alignment
+ * Header styles & Button Alignment - Adapted from Example
  *****************************************************************************/
 .treeview-header {
-  position: relative; z-index: 2; padding: 0.3rem 0.5rem 0.1rem;
+  position: sticky; /* Example uses sticky */
+  top: 0;
+  z-index: 2;
+  padding: 0.5rem 0.5rem 0rem; /* Example's padding */
   background-color: var(--root-background-color);
-  border-bottom: 1px solid var(--divider-color); flex-shrink: 0;
+  /* Remove bottom border */
+  /* border-bottom: 1px solid var(--divider-color); */
+  flex-shrink: 0;
 }
 .treeview-actions {
-  display: flex; justify-content: space-between; align-items: center;
-  width: 100%; min-height: 28px; box-sizing: border-box;
+  display: flex; justify-content: space-between; align-items: flex-start; /* Example */
+  width: 100%;
+  /* Mimic example's look */
+  background-color: var(--editor-widget-background-color);
+  border: var(--top-border-color, var(--divider-color)) 1px solid; /* Add fallback */
+  border-radius: 5px; /* Example */
+  color: var(--top-color, var(--text-color)); /* Add fallback */
+  padding: 2px; /* Add a little padding inside the border */
+  box-sizing: border-box;
 }
-.treeview-actions-left, .treeview-actions-right { display: flex; align-items: center; }
+.treeview-actions-left, .treeview-actions-right {
+  display: flex;
+  align-items: center; /* Keep centered vertically */
+}
+.treeview-actions-left {
+  flex: 1;
+  flex-wrap: wrap; /* Example allows wrapping */
+}
+
 .treeview-actions-right { flex-shrink: 0; }
+
 .treeview-actions button {
   display: inline-flex; align-items: center; justify-content: center;
-  margin: 1px 2px; padding: 4px; background-color: var(--action-button-background-color);
-  border: 0; color: var(--action-button-color); cursor: pointer;
-  flex-shrink: 0; border-radius: var(--border-radius-sm);
+  margin: 3px; /* Example's margin */
+  padding: 5px; /* Example's padding */
+  background-color: var(--action-button-background-color);
+  border: 0;
+  color: var(--action-button-color);
+  cursor: pointer;
+  flex-shrink: 0;
+  border-radius: var(--border-radius-sm); /* Keep smaller radius */
 }
 .treeview-actions button:hover { color: var(--action-button-hover-color); }
 .treeview-actions button:active { color: var(--action-button-active-color); }
-.treeview-actions button > svg { height: 16px; width: 16px; }
+.treeview-actions button > svg { height: 18px; width: 18px; } /* Example's size */
 
 /******************************************************************************
  * Tree Container & Scrolling
  *****************************************************************************/
 #treeview-tree {
   flex-grow: 1; overflow-y: auto; overflow-x: hidden;
-  /* Adjust overall container padding if needed, but root padding is handled by .tree now */
-  padding: 0.25rem 0.5rem 1rem 0.5rem;
+  /* Use example's margin/padding approach via .tree */
+  padding: 0; /* Remove padding from scroll container */
   min-height: 0;
 }
 
 /******************************************************************************
- * SortableTree styles & Default +/- Icon Styling
+ * SortableTree styles & Default +/- Icon Styling - Adapted from Example
  *****************************************************************************/
 
-/* Main tree container */
+/* Main tree container - Use example's margin/padding */
 .tree {
 	display: flex;
 	flex-direction: column;
-  margin: 0;
-  /* *** ADD PADDING HERE for root node icons *** */
-  padding-left: 10rem; /* Adjust value as needed (e.g., 1.25rem) */
+  margin: 0.25rem 0.5rem 1rem; /* Example's margin */
+  /* Use subnode padding for root indent, matching example */
+  padding-left: var(--st-subnodes-padding-left);
 }
 
 /* Ensure subnode container gets correct relative padding */
@@ -85,16 +133,15 @@ sortable-tree-node > div:nth-child(2) {
     box-sizing: border-box;
 }
 
-
 /* --- Icon & Label Layout --- */
 
 /* Container for the entire node row (icon + label span) */
 .tree__label {
   display: flex;
   align-items: center;
-  padding: 0; /* Remove padding from label div itself */
+  padding: 2px; /* Example's padding */
   position: relative;
-  min-height: 1.8em;
+  min-height: var(--st-collapse-icon-height); /* Align height with icon */
 }
 
 /* Collapse icon container - style the span holding the +/- */
@@ -107,12 +154,11 @@ sortable-tree-node > div:nth-child(2) {
   flex-shrink: 0;
   cursor: pointer;
   opacity: 0.7;
-  color: var(--treeview-icon-color); /* Set color for +/- */
-  font-size: var(--st-collapse-icon-size); /* Set font size for +/- */
-  font-weight: bold;
-  line-height: 1; /* Adjust line height for vertical centering */
+  color: var(--treeview-icon-color); /* Use variable */
+  font-size: var(--st-collapse-icon-size); /* Control size */
+  font-weight: normal; /* Example doesn't seem bold */
+  line-height: 1;
   text-align: center;
-  /* Ensure the icon container itself doesn't have extra margin/padding */
   margin: 0;
   padding: 0;
 }
@@ -121,7 +167,7 @@ sortable-tree-node > div:nth-child(2) {
 
 
 /* Hide collapse icon container if node has no children or is page */
-/* Keep this block commented out or remove it if icons appeared after commenting out */
+/* KEEP THIS COMMENTED OUT / REMOVED to ensure icons show */
 /*
 sortable-tree-node > div:nth-child(2):empty + span.tree__collapse,
 sortable-tree-node[data-node-type="page"] > span.tree__collapse,
@@ -132,25 +178,32 @@ sortable-tree-node[data-node-type="page"] > div:first-child > span.tree__collaps
 */
 
 
-/* Node Content Span (Text, Icon, Count) */
+/* Node Content Span (Text, Icon, Count) - Adapt from Example */
 .tree__label > span {
-  border: var(--treeview-node-border-width) solid transparent;
-  border-radius: var(--treeview-node-border-radius);
-  padding: 2px 5px;
+  /* Layout & Text */
+  overflow: hidden;
   cursor: pointer;
-  font-family: var(--editor-font);
-  font-size: 14px;
+  font-family: var(--editor-font); /* Example uses editor font */
+  font-size: 14px; /* Your previous size, adjust if needed */
   line-height: 1.4;
   text-decoration: none;
   white-space: nowrap;
   text-overflow: ellipsis;
-  display: inline-flex;
+  display: inline-flex; /* Keep flex for alignment */
   align-items: center;
-  margin: 1px 0;
-  position: relative;
-  overflow: hidden;
+
+  /* Spacing & Border - From Example */
+  padding: 0 5px; /* Example's padding */
+  margin: 0; /* Remove extra margin */
+  border-width: var(--treeview-node-border-width);
+  border-style: solid;
+  border-radius: var(--treeview-node-border-radius);
+  border-color: transparent; /* Default to transparent */
+
+  /* Sizing */
   flex-grow: 1;
   min-width: 0;
+  box-sizing: border-box;
 }
 
 /* Add icons using ::before ONLY FOR PAGE NODES (Keep this part) */
@@ -164,10 +217,37 @@ sortable-tree-node[data-node-type="page"] > div:first-child > span.tree__collaps
   mask-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>');
 }
 
-/* Specific node type styling (mainly color) */
-.tree__label > span[data-node-type="folder"] { color: var(--treeview-folder-color); }
-.tree__label > span[data-node-type="tag"] { color: var(--treeview-tag-color); }
-.tree__label > span[data-node-type="page"] { color: var(--treeview-page-color); opacity: 0.9; }
+/* Specific node type styling - Mimic Example */
+.tree__label > span[data-node-type="page"] {
+  background-color: var(--treeview-page-background-color);
+  border-color: var(--treeview-page-border-color);
+  color: var(--treeview-page-color);
+  opacity: 0.9; /* Keep opacity */
+}
+
+.tree__label > span[data-node-type="folder"] {
+  background-color: var(--treeview-folder-background-color);
+  border-color: var(--treeview-folder-border-color);
+  color: var(--treeview-folder-color);
+}
+
+.tree__label > span[data-node-type="tag"] {
+  background-color: var(--treeview-tag-background-color);
+  border-color: var(--treeview-tag-border-color);
+  color: var(--treeview-tag-color);
+}
+
+/* Style for the currently active page (if data-current-page="true" is set by JS) */
+.tree__label > span[data-current-page="true"] {
+	background-color: var(--treeview-current-page-background-color);
+  border-color: var(--treeview-current-page-border-color);
+	color: var(--treeview-current-page-color);
+  opacity: 1; /* Ensure current page is fully opaque */
+}
+.tree__label > span[data-current-page="true"]::before {
+  background-color: var(--treeview-current-page-color); /* Match icon color */
+}
+
 
 /* Style for the page count within the tag label */
 .treeview-node-pagecount {
@@ -175,20 +255,54 @@ sortable-tree-node[data-node-type="page"] > div:first-child > span.tree__collaps
   vertical-align: baseline; padding-left: 2px; font-style: italic;
 }
 
-/* Hover effect */
-.tree__label > span[data-node-type="tag"]:hover,
-.tree__label > span[data-node-type="folder"]:hover,
-.tree__label > span[data-node-type="page"]:hover {
-    background-color: var(--subtle-background-color);
-    border-color: var(--ui-accent-color);
+/* Hover effect - Override background/border */
+.tree__label > span:hover {
+    /* Use a subtle hover effect, maybe slightly darken or use accent */
+    background-color: var(--hover-background-color, var(--subtle-background-color));
+    border-color: var(--ui-accent-color); /* Highlight border on hover */
+}
+/* Ensure current page hover doesn't lose its accent background */
+.tree__label > span[data-current-page="true"]:hover {
+    background-color: var(--treeview-current-page-background-color); /* Keep background */
+    /* Optionally add slight brightness/darken filter on hover */
+    /* filter: brightness(1.1); */
 }
 
-/* D&D styles (Keep if D&D might be enabled later, otherwise remove) */
-/* ... */
-.tree__label:after { content: ' '; position: absolute; z-index: 4; inset: calc(var(--treeview-node-border-width) * -1) var(--treeview-node-border-width); border-top: calc(var(--treeview-node-border-width) * 2) solid transparent; border-bottom: calc(var(--treeview-node-border-width) * 2) solid transparent; transition: border-color 0.2s; pointer-events: none; }
-.tree__node--drop-before > .tree__label:after { border-top-color: var(--ui-accent-color); }
-.tree__node--drop-after > .tree__label:after { border-bottom-color: var(--ui-accent-color); }
-.tree__node--dragging { margin: calc(var(--treeview-node-border-width) * -1); border: var(--treeview-node-border-width) dashed var(--subtle-color); border-radius: var(--treeview-node-border-radius); cursor: move !important; opacity: 0.75; }
-.tree__node--dragging .tree__label > span { opacity: 0.75; }
-.tree__node--drop-inside > .tree__label > span { z-index: 3; background-color: var(--subtle-background-color); border-color: var(--ui-accent-color); }
+
+/* D&D styles - Copied from Example for consistency */
+.tree__label:after {
+  content: ' ';
+  position: absolute;
+  z-index: 4;
+  inset: calc(var(--treeview-node-border-width) * -1) var(--treeview-node-border-width);
+  border-top: calc(var(--treeview-node-border-width) * 2) solid transparent;
+  border-bottom: calc(var(--treeview-node-border-width) * 2) solid transparent;
+  transition: border-color 0.2s;
+  pointer-events: none;
+}
+.tree__node--drop-before > .tree__label:after {
+  border-top-color: var(--ui-accent-color);
+}
+.tree__node--drop-after > .tree__label:after {
+  border-bottom-color: var(--ui-accent-color);
+}
+.tree__node--dragging {
+  margin: calc(var(--treeview-node-border-width) * -1);
+  border: var(--treeview-node-border-width) dashed var(--subtle-color);
+  border-radius: var(--treeview-node-border-radius);
+  cursor: move !important;
+  opacity: 0.75; /* Keep opacity */
+}
+.tree__node--dragging .tree__label > span {
+  opacity: 0.75; /* Keep opacity */
+}
+.tree__node--drop-inside > .tree__label > span {
+  z-index: 3;
+  background-color: var(--subtle-background-color);
+  border-color: var(--ui-accent-color);
+}
+/* Prevent current page text color change when dropping inside */
+.tree__node--drop-inside > .tree__label > span[data-current-page="true"] {
+	color: var(--treeview-current-page-color);
+}
 
