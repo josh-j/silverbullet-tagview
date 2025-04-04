@@ -8,15 +8,15 @@ html {
 
   /* Define colors similar to example, mapping to SB vars where possible */
   --treeview-page-color: var(--text-color); /* Default text */
-  --treeview-page-background-color: var(--subtle-background-color); /* Use subtle for default bg */
+  --treeview-page-background-color: var(--root-background-color); /* Use subtle for default bg */
   --treeview-page-border-color: transparent; /* Start transparent */
 
   --treeview-folder-color: var(--text-color);
-  --treeview-folder-background-color: var(--subtle-background-color);
+  --treeview-folder-background-color: var(--root-background-color);
   --treeview-folder-border-color: transparent;
 
   --treeview-tag-color: var(--text-color);
-  --treeview-tag-background-color: var(--subtle-background-color);
+  --treeview-tag-background-color: var(--root-background-color);
   --treeview-tag-border-color: transparent;
 
   /* Style for the currently viewed page */
@@ -136,25 +136,8 @@ sortable-tree-node > div:nth-child(2) {
   min-height: var(--st-collapse-icon-height); /* Align height with icon */
 }
 
-/* Collapse icon container - style the span holding the +/- */
 .tree__collapse {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: var(--st-collapse-icon-width);
-  height: var(--st-collapse-icon-height);
-  flex-shrink: 0;
-  cursor: pointer;
-  opacity: 0.7;
-  color: var(--treeview-icon-color); /* Use variable */
-  font-size: var(--st-collapse-icon-size); /* Control size */
-  font-weight: normal; /* Example doesn't seem bold */
-  line-height: 1;
-  text-align: center;
-  margin: 0;
-  padding: 0;
-  /* Pull icon left to align with edge of padding */
-  margin-left: calc(-1 * var(--st-collapse-icon-width));
+  color: var(--editor-command-button-color);
 }
 
 .tree__collapse:hover { opacity: 1; }
@@ -198,17 +181,6 @@ sortable-tree-node[data-node-type="page"] > div:first-child > span.tree__collaps
   flex-grow: 1;
   min-width: 0;
   box-sizing: border-box;
-}
-
-/* Add icons using ::before ONLY FOR PAGE NODES (Keep this part) */
-.tree__label > span[data-node-type="page"]::before {
-  display: inline-block; margin-right: 6px; vertical-align: -0.1em;
-  width: 1em; height: 1em; line-height: 1; background-color: currentColor;
-  content: ""; flex-shrink: 0; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
-  -webkit-mask-size: 100% 100%; mask-size: 100% 100%;
-  /* File Icon */
-  -webkit-mask-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>');
-  mask-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>');
 }
 
 /* Specific node type styling - Mimic Example */
