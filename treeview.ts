@@ -45,7 +45,7 @@ export async function showTreeIfEnabled() {
 }
 
 /**
- * Shows the hierarchical tag treeview with chevron icons in the header.
+ * Shows the hierarchical tag treeview, loading node icons from SVG files.
  */
 export async function showTree() {
   const config: TagTreeViewConfig = await getPlugConfig(); // Use your config type
@@ -54,21 +54,23 @@ export async function showTree() {
     await hideTree();
   }
 
-  // Fetch necessary assets, ensuring all icons are loaded
+  // Fetch necessary assets, including node chevron SVG content
   try {
-      // *** CORRECTED Destructuring Syntax ***
       const [
-        // CSS and JS first
-        sortableTreeCss,  // No 'const' inside
+        // CSS and JS
+        sortableTreeCss,
         sortableTreeJs,
-        plugCss,
-        plugJs,
-        // Icons
-        iconChevronRight, // Use chevron-right for Collapse All
-        iconChevronDown,  // Use chevron-down for Expand All
+        plugCss, // Should be treeview_css_chevron_icons content
+        plugJs, // Should be treeview_js_chevron_icons content (or the updated one below)
+        // Header Icons
+        iconHeaderCollapse, // chevron-right for Collapse All button
+        iconHeaderExpand,  // chevron-down for Expand All button
         iconNavigation2, // Icon for Reveal Current Page
         iconRefresh, // Icon for Refresh
         iconXCircle, // Icon for Close
+        // Node Icons (Content loaded as strings)
+        nodeIconCollapsedSvg, // chevron-right SVG content for nodes
+        nodeIconOpenSvg,      // chevron-down SVG content for nodes
         // Data
         currentPage
       ] = await Promise.all([
@@ -77,50 +79,55 @@ export async function showTree() {
         asset.readAsset(PLUG_NAME, "assets/sortable-tree/sortable-tree.js"),
         asset.readAsset(PLUG_NAME, "assets/treeview.css"),
         asset.readAsset(PLUG_NAME, "assets/treeview.js"),
-        // Icons (ensure paths are correct in your plug)
-        asset.readAsset(PLUG_NAME, "assets/icons/chevron-right.svg"), // Load chevron-right
-        asset.readAsset(PLUG_NAME, "assets/icons/chevron-down.svg"), // Load chevron-down
+        // Header Icons (SVGs for buttons)
+        asset.readAsset(PLUG_NAME, "assets/icons/chevron-right.svg"),
+        asset.readAsset(PLUG_NAME, "assets/icons/chevron-down.svg"),
         asset.readAsset(PLUG_NAME, "assets/icons/navigation-2.svg"),
         asset.readAsset(PLUG_NAME, "assets/icons/refresh-cw.svg"),
         asset.readAsset(PLUG_NAME, "assets/icons/x-circle.svg"),
+        // Node Icons (Load SVG file *content*)
+        asset.readAsset(PLUG_NAME, "assets/icons/chevron-right.svg"), // Load content
+        asset.readAsset(PLUG_NAME, "assets/icons/chevron-down.svg"),  // Load content
         // Data
         editor.getCurrentPage(),
       ]);
-      // *** End of Correction ***
 
       // Fetch the hierarchical tag tree data
       const { nodes } = await getTagTree(config); // Use your API function
       const customStyles = await getCustomStyles();
 
-      // Prepare config for the frontend JS
+      // Prepare config for the frontend JS, including node icon SVG content
       const treeViewJsConfig = {
         nodes,
-        currentPage, // Pass current page for highlighting
+        currentPage,
         treeElementId: "treeview-tree",
-        // Keep D&D disabled for tag view
-        dragAndDrop: {
-          enabled: false,
-        },
+        dragAndDrop: { enabled: false },
+        // *** Pass SVG content for node icons ***
+        nodeIcons: {
+            collapsed: nodeIconCollapsedSvg, // Pass chevron-right content
+            open: nodeIconOpenSvg           // Pass chevron-down content
+        }
+        // **************************************
       };
 
-      // Show the panel with header matching the example structure
+      // Show the panel
       await editor.showPanel(
         config.position,
         config.size,
-        // Panel HTML - Use chevron icons for expand/collapse buttons
+        // Panel HTML - Use correct icons for header buttons
         `
           <link rel="stylesheet" href="/.client/main.css" />
           <style>
             ${sortableTreeCss}
-            ${plugCss} /* CSS matching the desired appearance */
+            ${plugCss} /* CSS for styling JS SVG icons */
             ${customStyles ?? ""}
           </style>
           <div class="treeview-root">
             <div class="treeview-header">
               <div class="treeview-actions">
                 <div class="treeview-actions-left">
-                  <button type="button" data-treeview-action="expand-all" title="Expand all">${iconChevronDown}</button>
-                  <button type="button" data-treeview-action="collapse-all" title="Collapse all">${iconChevronRight}</button>
+                  <button type="button" data-treeview-action="expand-all" title="Expand all">${iconHeaderExpand}</button>
+                  <button type="button" data-treeview-action="collapse-all" title="Collapse all">${iconHeaderCollapse}</button>
                   <button type="button" data-treeview-action="reveal-current-page" title="Reveal current page">${iconNavigation2}</button>
                   <button type="button" data-treeview-action="refresh" title="Refresh treeview">${iconRefresh}</button>
                 </div>
@@ -134,7 +141,7 @@ export async function showTree() {
         // Panel JavaScript
         `
           ${sortableTreeJs}
-          ${plugJs} // JS with highlighting and reveal action
+          ${plugJs} // JS needs to use config.nodeIcons
           // Ensure initializeTreeViewPanel is defined and pass the config
           if (typeof initializeTreeViewPanel === 'function') {
             initializeTreeViewPanel(${JSON.stringify(treeViewJsConfig)});
@@ -149,9 +156,7 @@ export async function showTree() {
 
   } catch (error) {
       console.error("Error loading assets or showing tree view:", error);
-      // Optionally show a notification to the user
       editor.flashNotification(`Error loading tree view: ${error.message}`, "error");
-      // Ensure state is consistent if panel failed to show
       await hideTree();
   }
 }
