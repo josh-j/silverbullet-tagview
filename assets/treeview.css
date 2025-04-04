@@ -76,7 +76,7 @@ html, body {
 	flex-direction: column;
   margin: 0;
   /* *** ADD PADDING HERE for root node icons *** */
-  padding-left: 1rem; /* Adjust value as needed (e.g., 1.25rem) */
+  padding-left: 10rem; /* Adjust value as needed (e.g., 1.25rem) */
 }
 
 /* Ensure subnode container gets correct relative padding */
