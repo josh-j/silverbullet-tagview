@@ -94,8 +94,7 @@ sortable-tree-node > div:nth-child(2) {
 
 /* Collapse icon container */
 .tree__collapse {
-  /* color: var(--text-muted); */ /* Original color */
-  color: transparent !important; /* *** FIX: Hide original icon color *** */
+  color: transparent !important; /* Hide original icon color */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -109,12 +108,18 @@ sortable-tree-node > div:nth-child(2) {
 }
 .tree__collapse:hover { opacity: 1; }
 
+/* *** ADD THIS RULE TO HIDE THE DEFAULT SVG *** */
+.tree__collapse > svg {
+  display: none !important;
+}
+/* ******************************************* */
+
+
 /* Collapse icon itself (chevron via SVG mask) */
 .tree__collapse::before {
     content: ""; display: inline-block; width: 1em; height: 1em;
     font-size: var(--st-collapse-icon-size);
-    /* *** FIX: Use specific color variable, not currentColor *** */
-    background-color: var(--treeview-icon-color);
+    background-color: var(--treeview-icon-color); /* Use specific variable */
     -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
     -webkit-mask-size: 100% 100%; mask-size: 100% 100%;
 }
@@ -192,7 +197,7 @@ sortable-tree-node[data-node-type="page"] > div:first-child > span.tree__collaps
 }
 
 /* D&D styles */
-/* ... (Keep D&D styles as before or remove if never enabling) ... */
+/* ... (Keep or remove D&D styles) ... */
 .tree__label:after { content: ' '; position: absolute; z-index: 4; inset: calc(var(--treeview-node-border-width) * -1) var(--treeview-node-border-width); border-top: calc(var(--treeview-node-border-width) * 2) solid transparent; border-bottom: calc(var(--treeview-node-border-width) * 2) solid transparent; transition: border-color 0.2s; pointer-events: none; }
 .tree__node--drop-before > .tree__label:after { border-top-color: var(--ui-accent-color); }
 .tree__node--drop-after > .tree__label:after { border-bottom-color: var(--ui-accent-color); }
