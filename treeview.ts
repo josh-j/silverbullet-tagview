@@ -101,8 +101,9 @@ export async function showTree() {
         currentPage,
         treeElementId: "treeview-tree",
         dragAndDrop: {
-          ...config.dragAndDrop,
-          enabled: config.dragAndDrop.enabled,
+            // Since D&D is disabled for tags, explicitly set enabled to false
+            enabled: false,
+            // Remove other D&D properties like confirmOnRename if they were here
         },
       };
 
