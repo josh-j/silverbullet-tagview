@@ -5,58 +5,24 @@ import {
 } from "@silverbulletmd/silverbullet/syscalls";
 import { z, ZodError } from "zod";
 
-/**
- * The name of this plug.
- * TODO: is there a way to get this programatically?
- */
-export const PLUG_NAME = "treeview";
+// Keep PLUG_NAME and PLUG_DISPLAY_NAME (maybe update display name)
+export const PLUG_NAME = "treeview"; // Or rename to "tagtreeview"? Keep for compatibility for now.
+export const PLUG_DISPLAY_NAME = "Tag TreeView Plug"; // Updated display name
 
-export const PLUG_DISPLAY_NAME = "TreeView Plug";
+const ENABLED_STATE_KEY = "enableTreeView"; // Keep key for enable/disable state
 
-/**
- * The key used to save the current enabled state of the treeview.
- */
-const ENABLED_STATE_KEY = "enableTreeView";
-
-/**
- * The possible position where the treeview can be rendered.
- */
+// Positions remain the same
 const POSITIONS = ["rhs", "lhs", "bhs", "modal"] as const;
-
 export type Position = typeof POSITIONS[number];
 
-/**
- * Defines an exclusion rule based on a regular expression
- */
-export const exclusionRuleByRegexSchema = z.object({
-  type: z.literal("regex"),
-  rule: z.string(),
-  negate: z.boolean().optional().default(false),
-});
+// Remove or comment out page exclusion schemas as they don't apply to listing tags
+/*
+export const exclusionRuleByRegexSchema = z.object({ ... });
+export const exclusionRuleByTagsSchema = z.object({ ... });
+export const exclusionRuleByFunctionSchema = z.object({ ... });
+*/
 
-/**
- * Defines an exclusion rule based on a list of tags
- */
-export const exclusionRuleByTagsSchema = z.object({
-  type: z.literal("tags"),
-  tags: z.array(z.string()),
-  negate: z.boolean().optional().default(false),
-  attribute: z.enum(["tags", "itags", "tag"]).optional().default("tags"),
-});
-
-/**
- * Defines an exclusion rule based on a regular expression
- */
-export const exclusionRuleByFunctionSchema = z.object({
-  type: z.literal("space-function"),
-  name: z.string(),
-  negate: z.boolean().optional().default(false),
-});
-
-/**
- * The schema for the tree view configuration read from the SETTINGS page.
- */
-const treeViewConfigSchema = z.object({
+const tagTreeViewConfigSchema = z.object({
   /**
    * Where to position the tree view in the UI.
    */
@@ -68,79 +34,66 @@ const treeViewConfigSchema = z.object({
   size: z.number().gt(0).optional().default(1),
 
   /**
-   * Drag-and-drop options
+   * Drag-and-drop options - Disabled for tags as it's not applicable.
    */
-  dragAndDrop: z.object({
-    /**
-     * Whether dragging/dropping functionality is
-     */
-    enabled: z.boolean().optional().default(true),
-    /**
-     * True to confirm on rename actions by showing a popup prompt.
-     */
-    confirmOnRename: z.boolean().optional().default(true),
-  }).optional().default({}),
+  // dragAndDrop: z.object({ ... }).optional().default({ enabled: false }), // Commented out or simplified
 
   /**
-   * @deprecated
+   * @deprecated - pageExcludeRegex removed as it's page-specific
    */
-  pageExcludeRegex: z.string().optional().default(""),
+  // pageExcludeRegex: z.string().optional().default(""),
 
   /**
-   * A list of exclusion rules to apply.
+   * @deprecated - exclusions removed as they are page-specific
    */
-  exclusions: z.array(z.discriminatedUnion("type", [
-    exclusionRuleByRegexSchema,
-    exclusionRuleByTagsSchema,
-    exclusionRuleByFunctionSchema,
-  ])).optional(),
+  // exclusions: z.array(z.discriminatedUnion("type", [ ... ])).optional(),
+
+  // Potential future config: options for sorting tags, filtering tags?
 });
 
-export type TreeViewConfig = z.infer<typeof treeViewConfigSchema>;
+// Update Type Alias
+export type TagTreeViewConfig = z.infer<typeof tagTreeViewConfigSchema>;
 
+// Keep showConfigErrorNotification function (adapting message slightly if needed)
+let configErrorShown = false;
 async function showConfigErrorNotification(error: unknown) {
   if (configErrorShown) {
     return;
   }
-
   configErrorShown = true;
   let errorMessage = `${typeof error}: ${String(error)}`;
-
   if (error instanceof ZodError) {
     const { formErrors, fieldErrors } = error.flatten();
     const fieldErrorMessages = Object.keys(fieldErrors).map((field) =>
       `\`${field}\` - ${fieldErrors[field]!.join(", ")}`
     );
-
-    // Not pretty, but we don't have any formatting options available here.
     errorMessage = [...formErrors, ...fieldErrorMessages].join("; ");
   }
-
-  // Some rudimentary notification about an invalid configuration.
-  // Not pretty, but we can't use html/formatting here.
   await editor.flashNotification(
-    `There was an error with your ${PLUG_NAME} configuration. Check your SETTINGS file: ${errorMessage}`,
+    `There was an error with your ${PLUG_DISPLAY_NAME} configuration. Check your SETTINGS file: ${errorMessage}`, // Updated plug name
     "error",
   );
 }
 
-let configErrorShown = false;
 
-export async function getPlugConfig(): Promise<TreeViewConfig> {
-  const userConfig = await system.getSpaceConfig("treeview", {});
+// Update getPlugConfig to use the new schema and provide defaults
+export async function getPlugConfig(): Promise<TagTreeViewConfig> {
+  const userConfig = await system.getSpaceConfig("treeview", {}); // Read from 'treeview' key for now
 
   try {
-    return treeViewConfigSchema.parse(userConfig || {});
+    // Use the new schema
+    return tagTreeViewConfigSchema.parse(userConfig || {});
   } catch (_err) {
     if (!configErrorShown) {
       showConfigErrorNotification(_err);
       configErrorShown = true;
     }
-    // Fallback to the default configuration
-    return treeViewConfigSchema.parse({});
+    // Fallback to the default configuration using the new schema
+    return tagTreeViewConfigSchema.parse({});
   }
 }
 
+// Keep isTreeViewEnabled, setTreeViewEnabled, getCustomStyles as they are general UI state/options
 export async function isTreeViewEnabled() {
   return !!(await clientStore.get(ENABLED_STATE_KEY));
 }
