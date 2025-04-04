@@ -1,35 +1,35 @@
 name: treeview
-# Increment version number
-version: 0.16.1
-# Add/Update description
-description: Displays a tree view of all tags in the space.
+version: 0.17 # Consider incrementing version
+description: Displays a hierarchical tree view of all tags in the space.
 assets:
   - "assets/**/*.*"
 functions:
   # API
   hide:
-    path: "./treeview.ts:hideTree" # Assuming your main file is treeview.ts now
-
+    path: "./treeview.ts:hideTree"
   show:
-    path: "./treeview.ts:showTree" # Assuming your main file is treeview.ts now
-
+    path: "./treeview.ts:showTree"
   showIfEnabled:
-    path: "./treeview.ts:showTreeIfEnabled" # Assuming your main file is treeview.ts now
+    path: "./treeview.ts:showTreeIfEnabled"
     events:
       - editor:init
       - editor:pageLoaded
       - editor:pageSaved
       - file:deleted
 
-  # Add this new entry:
-  navigateToTagQuery:
-    path: "./treeview.ts:navigateToTagQuery"      
-
-  # User facing
+  # User facing command
   toggle:
-    path: "./treeview.ts:toggleTree" # Assuming your main file is treeview.ts now
+    path: "./treeview.ts:toggleTree"
     command:
-      # Optional: Update command name for clarity
       name: "Tag Tree: Toggle"
       key: Ctrl-alt-b
       mac: Cmd-alt-b
+
+  # NEW: Function called by frontend to get pages for a tag
+  getPagesForTag:
+    path: "./treeview.ts:getPagesForTag"
+
+  # REMOVE: This function is no longer used by the frontend
+  # navigateToTagQuery:
+  #   path: "./treeview.ts:navigateToTagQuery"
+
