@@ -117,12 +117,13 @@ html, body {
   padding-left: var(--st-subnodes-padding-left);
 }
 
-/* Collapse icon styling - Ensure it's visible */
+/* Ensure this rule allows the icon to be displayed */
 .tree__collapse {
   color: var(--editor-command-button-color);
-  display: flex; /* Ensure it's displayed */
-  align-items: center; /* Vertically center icon */
+  display: flex; /* Or whatever SortableTree default is */
+  align-items: center;
 }
+
 /* Hide collapse icon only if node has no children */
 sortable-tree-node > div:nth-child(2):empty + .tree__collapse {
    /* Selects the collapse span only if the subnode div (2nd child) is empty */
@@ -187,15 +188,15 @@ sortable-tree-node > div:nth-child(2):empty + .tree__collapse {
 }
 
 /* Add icons using ::before */
-.tree__label > span::before {
-  display: inline-block; /* Allows margin */
-  margin-right: 6px;   /* Space between icon and text */
-  font-size: 1em;      /* Adjust icon size */
-  vertical-align: -0.1em; /* Fine-tune vertical alignment */
-  width: 1.1em; /* Reserve some width */
-  text-align: center;
-  line-height: 1; /* Prevent icon affecting line height */
-}
+/* .tree__label > span::before { */
+  /* display: inline-block; /* Allows margin */ */
+  /* margin-right: 6px;   /* Space between icon and text */ */
+  /* font-size: 1em;      /* Adjust icon size */ */
+  /* vertical-align: -0.1em; /* Fine-tune vertical alignment */ */
+  /* width: 1.1em; /* Reserve some width */ */
+  /* text-align: center; */
+  /* line-height: 1; /* Prevent icon affecting line height */ */
+/* } */
 
 /* Specific node type styling */
 .tree__label > span[data-node-type="page"] { /* Fallback */
@@ -209,17 +210,17 @@ sortable-tree-node > div:nth-child(2):empty + .tree__collapse {
   border-color: var(--treeview-folder-border-color);
   color: var(--treeview-folder-color);
 }
-.tree__label > span[data-node-type="folder"]::before {
-  content: "📁"; /* Unicode Folder icon */
-}
+/* .tree__label > span[data-node-type="folder"]::before { */
+  /* content: "📁"; /* Unicode Folder icon */ */
+/* } */
 .tree__label > span[data-node-type="tag"] {
   background-color: var(--treeview-tag-background-color);
   border-color: var(--treeview-tag-border-color);
   color: var(--treeview-tag-color);
 }
-.tree__label > span[data-node-type="tag"]::before {
-  content: "🏷️"; /* Unicode Tag icon */
-}
+/* .tree__label > span[data-node-type="tag"]::before { */
+  /* content: "🏷️"; /* Unicode Tag icon */ */
+/* } */
 
 /* Style for the page count within the tag label */
 .treeview-node-pagecount {

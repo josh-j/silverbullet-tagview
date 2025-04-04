@@ -21,6 +21,10 @@ functions:
       - editor:pageSaved
       - file:deleted
 
+  # Add this new entry:
+  navigateToTagQuery:
+    path: "./treeview.ts:navigateToTagQuery"      
+
   # User facing
   toggle:
     path: "./treeview.ts:toggleTree" # Assuming your main file is treeview.ts now
