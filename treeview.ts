@@ -49,6 +49,17 @@ export async function showTreeIfEnabled() {
 }
 
 
+// Add this function inside treeview.ts
+export async function navigateToTagQuery(tagName: string) {
+  if (tagName) {
+    // This function runs in the main plug context and CAN use editor.runCommand
+    console.log(`Backend: Received request to navigate to tag: ${tagName}`);
+    await editor.runCommand("query.set", `tag:${tagName}`);
+  } else {
+    console.warn("Backend: navigateToTagQuery called with empty tagName");
+  }
+}
+
 /**
  * Shows the hierarchical tag treeview and sets it to enabled.
  */
