@@ -1,6 +1,6 @@
 name: treeview
-version: 0.17 # Consider incrementing version
-description: Displays a hierarchical tree view of all tags in the space.
+version: 0.18 # Consider incrementing version
+description: Displays a hierarchical tree view of tags and associated pages.
 assets:
   - "assets/**/*.*"
 functions:
@@ -21,15 +21,10 @@ functions:
   toggle:
     path: "./treeview.ts:toggleTree"
     command:
-      name: "Tag Tree: Toggle"
+      name: "Tag Tree: Toggle" # Or keep "Tree View: Toggle" if preferred
       key: Ctrl-alt-b
       mac: Cmd-alt-b
 
-  # NEW: Function called by frontend to get pages for a tag
-  getPagesForTag:
-    path: "./treeview.ts:getPagesForTag"
-
-  # REMOVE: This function is no longer used by the frontend
-  # navigateToTagQuery:
-  #   path: "./treeview.ts:navigateToTagQuery"
+  # REMOVED: getPagesForTag - Not needed with pre-loading approach
+  # REMOVED: navigateToTagQuery - Not needed with new click handler
 

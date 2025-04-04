@@ -40,6 +40,7 @@ function createTagTreeView(config) {
 
     // onChange might be useful for saving state
     onChange: async () => {
+       // Refreshing on change might save the collapse state
        await syscall("system.invokeFunction", "treeview.show");
     },
 
@@ -64,7 +65,7 @@ function createTagTreeView(config) {
       } else if (nodeType === 'folder' || nodeType === 'tag') {
         // It's a folder or tag node, toggle it when the label is clicked
         // The collapse icon click is handled automatically by SortableTree
-        console.log(`Panel: ${nodeType} node clicked:`, nodeName);
+        console.log(`Panel: ${nodeType} node clicked, toggling:`, nodeName);
         node.toggle();
       } else {
          console.warn("Panel: Clicked node with unknown type:", node.data);
@@ -78,10 +79,11 @@ function createTagTreeView(config) {
      */
     renderLabel: (data) => {
         let content = '';
-        const title = data.title || data.name; // Fallback to name if title missing
+        // Use title for display, fallback to name if title is missing (shouldn't happen often)
+        const title = data.title || data.name;
 
-        if (data.nodeType === 'tag' && typeof data.pageCount === 'number') {
-          // Tag node: Show title and page count
+        if (data.nodeType === 'tag' && typeof data.pageCount === 'number' && data.pageCount > 0) {
+          // Tag node: Show title and page count (only if > 0)
           content = `${title} <span class="treeview-node-pagecount">(${data.pageCount})</span>`;
         } else {
           // Folder or Page node: Just show title
@@ -89,6 +91,7 @@ function createTagTreeView(config) {
         }
 
         // Return the span with appropriate data attributes
+        // Tooltip shows the full name (tag path or page name)
         return `
           <span
             data-node-type="${data.nodeType}"
@@ -112,6 +115,7 @@ function initializeTreeViewPanel(config) {
     switch (action) {
        case "collapse-all": {
          document.querySelectorAll("sortable-tree-node[open='true']").forEach((node) => {
+             // Only collapse nodes that actually have children (folders/tags with content)
              if (node.children[1] && node.children[1].children.length > 0) {
                  node.collapse(true);
              }
@@ -131,6 +135,7 @@ function initializeTreeViewPanel(config) {
         return true;
       }
       case "refresh": {
+        // Clear state before refresh to attempt respecting initCollapseLevel
         tree.clearState();
         syscall("system.invokeFunction", "treeview.show");
         return true;
