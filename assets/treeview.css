@@ -153,16 +153,16 @@ html, body {
 .tree {
     display: flex;
     flex-direction: column;
-    margin: 0.25rem 0.5rem 1rem; /* Example's margin */
+    margin: 0.5rem 1.0rem 1rem; /* Example's margin */
     /* Adjust padding to prevent icon cutoff */
-    /* padding-left: calc(var(--st-collapse-icon-width) + 1.25rem); */
+    padding-left: var(--st-subnodes-padding-left);
 }
 
 /* Ensure subnode container gets correct relative padding */
-sortable-tree-node > div:nth-child(2) {
+/* sortable-tree-node > div:nth-child(2) {
     padding-left: var(--st-subnodes-padding-left);
     box-sizing: border-box;
-}
+} */
 
 /* --- Icon & Label Layout --- */
 
