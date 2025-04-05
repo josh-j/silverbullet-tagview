@@ -34,8 +34,8 @@ html {
     /* SortableTree variables - Using example's values */
     --st-label-height: 1.75rem;
     --st-subnodes-padding-left: 1.25rem; /* Indentation for children */
-    --st-collapse-icon-height: 1rem;
-    --st-collapse-icon-width: 0.9rem; /* Width of the icon container */
+    --st-collapse-icon-height: var(--st-label-height);
+    --st-collapse-icon-width: 1.5rem; /* Width of the icon container */
     --st-collapse-icon-size: 0.9rem; /* Controls size of the SVG icon */
 }
 
