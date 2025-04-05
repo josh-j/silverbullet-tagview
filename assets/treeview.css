@@ -172,6 +172,18 @@ body {
     padding: 2px;
 }
 
+.tree__label:after {
+    content: " ";
+    position: absolute;
+    z-index: 4;
+    inset: calc(var(--treeview-node-border-width) * -1)
+        var(--treeview-node-border-width);
+    border-top: calc(var(--treeview-node-border-width) * 2) solid transparent;
+    border-bottom: calc(var(--treeview-node-border-width) * 2) solid transparent;
+    transition: border-color 0.2s;
+    pointer-events: none;
+}
+
 /* Collapse icon container span */
 .tree__collapse {
     color: var(--editor-command-button-color);
@@ -199,24 +211,18 @@ sortable-tree-node[data-node-type="page"] > div:first-child > .tree__collapse {
 /* Node Content Span (Text, Icon, Count) - Adapt from Example */
 .tree__label > span {
     overflow: hidden;
-    cursor: pointer;
-    font-family: var(--editor-font);
-    font-size: 14px;
-    line-height: 1.4;
-    text-decoration: none;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    display: inline-flex;
-    align-items: center;
     padding: 0 5px;
-    margin: 0;
+    border-color: transparent;
     border-width: var(--treeview-node-border-width);
     border-style: solid;
     border-radius: var(--treeview-node-border-radius);
-    border-color: transparent;
-    flex-grow: 1;
-    min-width: 0;
-    box-sizing: border-box;
+    cursor: pointer;
+    font-family: var(--editor-font);
+    font-size: 18px;
+    line-height: 1.4;
+    text-decoration: none;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 /* Add icons using ::before ONLY FOR PAGE NODES */
@@ -292,7 +298,7 @@ sortable-tree-node[data-node-type="page"] > div:first-child > .tree__collapse {
     border-bottom: calc(var(--treeview-node-border-width) * 2) solid transparent;
     transition: border-color 0.2s;
     pointer-events: none;
-} */
+}
 .tree__node--drop-before > .tree__label:after {
     border-top-color: var(--ui-accent-color);
 }
@@ -317,3 +323,4 @@ sortable-tree-node[data-node-type="page"] > div:first-child > .tree__collapse {
 .tree__node--drop-inside > .tree__label > span[data-current-page="true"] {
     color: var(--treeview-current-page-color);
 }
+*/
