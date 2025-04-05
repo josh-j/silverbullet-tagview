@@ -42,7 +42,7 @@ html {
 /******************************************************************************
  * Page & Scrolling Styles
  *****************************************************************************/
-html,
+/* html,
 body {
     margin: 0;
     padding: 0;
@@ -59,7 +59,21 @@ body {
     overflow: hidden;
     box-sizing: border-box;
     background-color: var(--root-background-color);
+} */
+
+html, body {
+  background-color: var(--root-background-color);
+  padding: 0;
+  margin: 0;
+  overflow: initial !important;
 }
+
+.treeview-root {
+  background-color: var(--root-background-color);
+  color: var(--root-color);
+  font-family: var(--ui-font);
+}
+
 
 /******************************************************************************
  * Header styles & Button Alignment - Adapted from Example
