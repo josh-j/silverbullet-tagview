@@ -34,9 +34,9 @@ html {
     /* SortableTree variables - Using example's values */
     --st-label-height: auto;
     --st-subnodes-padding-left: 1.25rem; /* Indentation for children */
-    --st-collapse-icon-height: 1.75rem; /* Example's value */
-    --st-collapse-icon-width: 1.25rem; /* Width of the icon container */
-    --st-collapse-icon-size: 1rem; /* Controls size of the SVG icon */
+    --st-collapse-icon-height: 0.9rem; /* Example's value */
+    --st-collapse-icon-width: 0.9rem; /* Width of the icon container */
+    --st-collapse-icon-size: 0.9rem; /* Controls size of the SVG icon */
 }
 
 /******************************************************************************
@@ -123,7 +123,6 @@ body {
 /******************************************************************************
  * Tree Container & Scrolling
  *****************************************************************************/
-/*
 #treeview-tree {
     flex-grow: 1;
     overflow-y: auto;
@@ -131,7 +130,6 @@ body {
     padding: 0;
     min-height: 0;
 }
-*/
 
 /******************************************************************************
  * SortableTree styles & SVG Icon Styling
@@ -143,7 +141,7 @@ body {
     flex-direction: column;
     margin: 0.25rem 0.5rem 1rem; /* Example's margin */
     /* Adjust padding to prevent icon cutoff */
-    padding-left: calc(var(--st-collapse-icon-width) + 0.25rem);
+    /* padding-left: calc(var(--st-collapse-icon-width) + 1.25rem); */
 }
 
 /* Ensure subnode container gets correct relative padding */
