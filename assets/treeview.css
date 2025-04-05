@@ -142,9 +142,9 @@ body {
 .tree {
     display: flex;
     flex-direction: column;
-    margin: 0.25rem 0.5rem 1rem;
+    margin: 0.25rem 0.5rem 1rem; /* Example's margin */
     /* Adjust padding to prevent icon cutoff */
-    /* padding-left: var(--st-subnodes-padding-left); */
+    padding-left: var(--st-subnodes-padding-left);
 }
 
 /* Ensure subnode container gets correct relative padding */
