@@ -154,7 +154,7 @@ body {
 }
 
 /* Style the SVG icon injected by the JS */
-.tree__collapse > svg {
+.tree__collapse button > svg {
     /* display: block; */
     width: var(--st-collapse-icon-size);
     height: var(--st-collapse-icon-size);
