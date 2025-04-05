@@ -2,7 +2,7 @@
 :root {
     --st-label-height: 2.5rem;
     --st-subnodes-padding-left: 1.5rem;
-    --st-collapse-icon-height: var(--st-label-height);
+    --st-collapse-icon-height: 1.5rem;
     --st-collapse-icon-width: 1.25rem;
     --st-collapse-icon-size: 0.75rem;
 }
