@@ -155,12 +155,12 @@ body {
 }
 
 /* Style the SVG icon injected by the JS */
-.tree__collapse > svg {
+/* .tree__collapse > svg {
     display: block;
     width: var(--st-collapse-icon-size);
     height: var(--st-collapse-icon-size);
     stroke: 1px;
-}
+} */
 
 /* Node Content Span (Text, Icon, Count) - Adapt from Example */
 .tree__label > span {
