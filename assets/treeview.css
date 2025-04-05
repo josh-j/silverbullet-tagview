@@ -33,11 +33,10 @@ html {
 .treeview-root {
     /* SortableTree variables - Using example's values */
     --st-label-height: 1.75rem;
-    --st-subnodes-padding-left: 1.5rem;
-    /* --st-collapse-icon-height: var(--st-label-height); */
-    --st-collapse-icon-height: 1rem;
-    --st-collapse-icon-width: 1rem;
-    --st-collapse-icon-size: 1rem;
+    --st-subnodes-padding-left: 1.25rem; /* Indentation for children */
+    --st-collapse-icon-height: var(--st-label-height);
+    --st-collapse-icon-width: 0.9rem; /* Width of the icon container */
+    --st-collapse-icon-size: 0.9rem; /* Controls size of the SVG icon */
 }
 
 /******************************************************************************
@@ -159,7 +158,7 @@ body {
     display: block;
     width: var(--st-collapse-icon-size);
     height: var(--st-collapse-icon-size);
-    stroke: 1px;
+    stroke: var(--treeview-icon-color);
 } */
 
 /* Node Content Span (Text, Icon, Count) - Adapt from Example */
