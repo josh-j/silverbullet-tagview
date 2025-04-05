@@ -1,9 +1,9 @@
 /*! Sortable Tree 0.7.2, (c) 2023 Marc Anton Dahmen, MIT license */
 :root {
-    --st-label-height: 2.5rem;
+    --st-label-height: 1.75rem;
     --st-subnodes-padding-left: 1.5rem;
-    --st-collapse-icon-height: 1.5rem;
-    --st-collapse-icon-width: 1.25rem;
+    --st-collapse-icon-height: 0.5rem;
+    --st-collapse-icon-width: 0.25rem;
     --st-collapse-icon-size: 0.75rem;
 }
 sortable-tree-node {
