@@ -137,13 +137,13 @@ html, body {
 /******************************************************************************
  * Tree Container & Scrolling
  *****************************************************************************/
-#treeview-tree {
+/* #treeview-tree {
     flex-grow: 1;
     overflow-y: auto;
     overflow-x: hidden;
     padding: 0;
     min-height: 0;
-}
+} */
 
 /******************************************************************************
  * SortableTree styles & SVG Icon Styling
