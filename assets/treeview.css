@@ -61,19 +61,19 @@ body {
     background-color: var(--root-background-color);
 } */
 
-html, body {
-  background-color: var(--root-background-color);
-  padding: 0;
-  margin: 0;
-  overflow: initial !important;
+html,
+body {
+    background-color: var(--root-background-color);
+    padding: 0;
+    margin: 0;
+    overflow: initial !important;
 }
 
 .treeview-root {
-  background-color: var(--root-background-color);
-  color: var(--root-color);
-  font-family: var(--ui-font);
+    background-color: var(--root-background-color);
+    color: var(--root-color);
+    font-family: var(--ui-font);
 }
-
 
 /******************************************************************************
  * Header styles & Button Alignment - Adapted from Example
@@ -153,7 +153,7 @@ html, body {
 .tree {
     display: flex;
     flex-direction: column;
-    margin: 0.5rem 1.0rem 1rem; /* Example's margin */
+    margin: 0.5rem 1rem 1rem; /* Example's margin */
     /* Adjust padding to prevent icon cutoff */
     padding-left: var(--st-subnodes-padding-left);
 }
@@ -169,27 +169,12 @@ html, body {
 /* Container for the entire node row (icon + label span) */
 .tree__label {
     display: flex;
-    align-items: center;
     padding: 2px;
-    position: relative;
-    min-height: var(--st-collapse-icon-height);
 }
 
 /* Collapse icon container span */
 .tree__collapse {
-    /* *** Ensure it's displayed by default *** */
-    display: flex !important; /* Use important to override potential library default */
-    align-items: center;
-    justify-content: center;
-    width: var(--st-collapse-icon-width);
-    height: var(--st-collapse-icon-height);
-    flex-shrink: 0;
-    cursor: pointer;
-    opacity: 0.7;
-    margin: 0;
-    padding: 0;
-    /* Pull icon left to align with edge of padding */
-    margin-left: calc(-1 * var(--st-collapse-icon-width));
+    color: var(--editor-command-button-color);
 }
 
 .tree__collapse:hover {
@@ -198,10 +183,10 @@ html, body {
 
 /* Style the SVG icon injected by the JS */
 /* .tree__collapse > svg {
-    display: block; /* Ensure SVG is visible */
-    width: var(--st-collapse-icon-size); /* Control size */
-    height: var(--st-collapse-icon-size); /* Control size */
-    stroke: var(--treeview-icon-color); /* Control color */
+    display: block;
+    width: var(--st-collapse-icon-size);
+    height: var(--st-collapse-icon-size);
+    stroke: var(--treeview-icon-color);
 } */
 
 /* *** Explicitly hide icon container ONLY for page nodes *** */
@@ -210,7 +195,6 @@ html, body {
 sortable-tree-node[data-node-type="page"] > div:first-child > .tree__collapse {
     display: none !important;
 } */
-
 
 /* Node Content Span (Text, Icon, Count) - Adapt from Example */
 .tree__label > span {
