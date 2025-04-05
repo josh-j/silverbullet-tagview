@@ -33,10 +33,10 @@ html {
 .treeview-root {
     /* SortableTree variables - Using example's values */
     --st-label-height: 1.75rem;
-    --st-subnodes-padding-left: 1.25rem; /* Indentation for children */
-    --st-collapse-icon-height: 0.9rem; /* Example's value */
-    --st-collapse-icon-width: 1.25rem; /* Width of the icon container */
-    --st-collapse-icon-size: 0.9rem;
+    --st-subnodes-padding-left: 1.5rem;
+    --st-collapse-icon-height: var(--st-label-height);
+    --st-collapse-icon-width: 1.25rem;
+    --st-collapse-icon-size: 0.75rem;
 }
 
 /******************************************************************************
