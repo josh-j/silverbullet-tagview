@@ -135,17 +135,6 @@ body {
 }
 
 /******************************************************************************
- * Tree Container & Scrolling
- *****************************************************************************/
-/* #treeview-tree {
-    flex-grow: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
-    padding: 0;
-    min-height: 0;
-} */
-
-/******************************************************************************
  * SortableTree styles & SVG Icon Styling
  *****************************************************************************/
 
@@ -155,7 +144,7 @@ body {
     flex-direction: column;
     margin: 0.25rem 0.5rem 1rem; /* Example's margin */
     /* Adjust padding to prevent icon cutoff */
-    padding-left: var(--st-subnodes-padding-left);
+    /* padding-left: var(--st-subnodes-padding-left); */
 }
 
 /* Ensure subnode container gets correct relative padding */
