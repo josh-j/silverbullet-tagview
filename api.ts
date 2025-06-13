@@ -8,12 +8,11 @@
     type NodeData = FolderNodeData | TagNodeData | PageNodeData;
     export type TreeNode = { data: NodeData; nodes: TreeNode[]; };
 
-
     export async function getTagTree(config: TagTreeViewConfig): Promise<{ nodes: TreeNode[] }> {
       // --- Data fetching and processing (tagPageMap, tagCounts, uniqueTags) remain the same ---
       let tagIndexEntries: TagIndexEntry[] = [];
       try {
-        tagIndexEntries = await system.invokeFunction("index.queryObjects", "tag", {});
+        tagIndexEntries = await system.invokeFunction("index.tag", "page");
       } catch (e) {
         console.error("Failed to fetch tags via index.queryObjects('tag',...):", e);
         editor.flashNotification(`Error fetching tags: ${e.message}`, "error");
@@ -109,4 +108,3 @@
         nodes: root.nodes,
       };
     }
-    
