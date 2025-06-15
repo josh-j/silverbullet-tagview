@@ -28,7 +28,7 @@ html {
 
     /* Icon Color */
     --treeview-icon-color: var(--text-muted); /* Color for chevron SVG */
-    
+
     /* Header styles for outline view */
     --treeview-header-color: var(--text-color);
     --treeview-header-background-color: transparent;
@@ -163,7 +163,8 @@ body {
     /* display: block; */
     width: var(--st-collapse-icon-size);
     height: var(--st-collapse-icon-size);
-    stroke: 1px;
+    stroke-width: 2px;
+    margin-left: 8px;
 }
 
 /* Node Content Span (Text, Icon, Count) - Adapt from Example */
@@ -306,7 +307,6 @@ body {
     background-color: var(--hover-background-color, var(--subtle-background-color));
     border-color: var(--ui-accent-color);
 }
-
 
 /* Style for the outline title */
 .outline-title {
