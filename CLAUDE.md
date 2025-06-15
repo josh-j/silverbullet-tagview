@@ -56,8 +56,8 @@ deno task build && cp *.plug.js /path/to/space/_plug/
 1. **Page Content**: Uses `editor.getText()` to get current page markdown content
 2. **Header Parsing**: Regex matches headers (#{1,6}) and extracts level, title, and character position
 3. **Hierarchical Structure**: Headers are nested based on level (H1 contains H2-H6, H2 contains H3-H6, etc.)
-4. **Header Navigation**: Click on leaf headers navigates using `editor.navigate(pageName@position)`
-5. **Folding Support**: Click on headers with children toggles expand/collapse state
+4. **Header Navigation**: Click on header text always navigates using `editor.navigate(pageName@position)`
+5. **Smart Folding**: Click expand/collapse icons (▷/▽) to toggle folding; click header text to navigate and auto-unfold
 6. **Visual Hierarchy**: Bullet-based styling with distinct symbols for each header level
 7. **Level-specific Bullets**: H1 (●), H2 (○), H3 (▪), H4 (▫), H5 (‣), H6 (‧) with progressive indentation
 
@@ -75,8 +75,8 @@ deno task build && cp *.plug.js /path/to/space/_plug/
 
 **Navigation:**
 - Tag/page nodes use `editor.navigate(pageName)` for page navigation
-- Header leaf nodes use `editor.navigate(pageName@position)` for proper scrolling to header positions
-- Header parent nodes toggle expand/collapse when clicked (folding support)
+- Header text click always navigates using `editor.navigate(pageName@position)` and auto-unfolds if collapsed
+- Expand/collapse icons (larger, 14px) handle folding without interfering with navigation
 - View switcher buttons in panel header for seamless mode switching between tags and outline
 
 ## Asset Dependencies

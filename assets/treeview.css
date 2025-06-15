@@ -40,8 +40,8 @@ html {
     --st-label-height: 1.75rem;
     --st-subnodes-padding-left: 1.25rem; /* Indentation for children */
     --st-collapse-icon-height: var(--st-label-height);
-    --st-collapse-icon-width: 1.5rem; /* Width of the icon container */
-    --st-collapse-icon-size: 8px;
+    --st-collapse-icon-width: 2rem; /* Width of the icon container */
+    --st-collapse-icon-size: 14px;
 }
 
 /******************************************************************************
