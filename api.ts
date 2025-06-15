@@ -1,78 +1,57 @@
-// --- Keep imports and type definitions the same ---
-import { editor, system } from "@silverbulletmd/silverbullet/syscalls";
-import { PLUG_DISPLAY_NAME, TagTreeViewConfig } from "./config.ts";
+// api.ts
 
-interface TagIndexEntry {
+import { editor, system } from "@silverbulletmd/silverbullet/syscalls";
+
+// --- Type Definitions ---
+
+// This represents the data we get back from our query for each page.
+interface PageQueryResult {
   name: string;
-  page: string;
+  tags?: string[]; // The 'tags' property is an array of strings.
   [key: string]: any;
 }
 
-type PageNodeData = {
-  name: string;
-  title: string;
-  nodeType: "page";
-};
-
-type FolderNodeData = {
-  name: string;
-  title: string;
-  nodeType: "folder";
-};
-
-type TagNodeData = {
-  name: string;
-  title: string;
-  nodeType: "tag";
-  pageCount: number;
-};
-
+// These types define the structure of the nodes in our final tree.
+type PageNodeData = { name: string; title: string; nodeType: "page" };
+type FolderNodeData = { name: string; title: string; nodeType: "folder" };
+type TagNodeData = { name: string; title: string; nodeType: "tag"; pageCount: number };
 type NodeData = FolderNodeData | TagNodeData | PageNodeData;
 
-export type TreeNode = {
-  data: NodeData;
-  nodes: TreeNode[];
-};
+export type TreeNode = { data: NodeData; nodes: TreeNode[] };
 
-export async function getTagTree(
-  config: TagTreeViewConfig,
-): Promise<{ nodes: TreeNode[] }> {
-  let tagIndexEntries: TagIndexEntry[] = [];
+/**
+ * Fetches all pages, processes their tags, and builds a hierarchical tree structure.
+ * This function is the core data source for the tag view panel.
+ */
+export async function getTagTree(): Promise<{ nodes: TreeNode[] }> {
+  let allPages: PageQueryResult[] = [];
   try {
-    // Corrected API call for Silverbullet v2
-    tagIndexEntries = await system.invokeFunction(
-      "index.queryObjects",
-      "tag",
-      {},
-    );
+    // CORRECTED: Fetch all objects of type "page".
+    // This is the working API call for Silverbullet v2.
+    allPages = await system.invokeFunction("index.queryObjects", "page", {});
   } catch (e) {
-    console.error(
-      "Failed to fetch tags via index.queryObjects('tag', {}):",
-      e,
-    );
-    editor.flashNotification(`Error fetching tags: ${e.message}`, "error");
+    console.error("Failed to fetch pages via index.queryObjects('page', {}):", e);
+    editor.flashNotification(`Error fetching pages for Tag View: ${e.message}`, "error");
     return { nodes: [] };
   }
 
-  // --- Data processing and tree building (no changes needed here) ---
+  // --- Data Processing: Build the tag-to-page mapping ---
   const tagPageMap = new Map<string, Set<string>>();
-  for (const entry of tagIndexEntries) {
-    if (
-      entry &&
-      typeof entry.name === "string" &&
-      entry.name &&
-      typeof entry.page === "string" &&
-      entry.page
-    ) {
-      if (!tagPageMap.has(entry.name)) {
-        tagPageMap.set(entry.name, new Set<string>());
+  for (const page of allPages) {
+    // Check if the page has a name and an array of tags.
+    if (page && Array.isArray(page.tags) && typeof page.name === "string" && page.name) {
+      for (const tagName of page.tags) {
+        // If this is the first time we see this tag, create a new Set for it.
+        if (!tagPageMap.has(tagName)) {
+          tagPageMap.set(tagName, new Set<string>());
+        }
+        // Add the current page to the set of pages for this tag.
+        tagPageMap.get(tagName)!.add(page.name);
       }
-      tagPageMap.get(entry.name)!.add(entry.page);
-    } else {
-      console.warn("Skipping invalid tag index entry:", entry);
     }
   }
 
+  // --- Tree Building: This logic remains the same as it relies on tagPageMap ---
   const tagCounts: Record<string, number> = {};
   const uniqueTags: string[] = [];
   for (const [tagName, pageSet] of tagPageMap.entries()) {
@@ -87,114 +66,54 @@ export async function getTagTree(
     parts.reduce((parent, title, currentIndex) => {
       const currentPath = parts.slice(0, currentIndex + 1).join("/");
       const isLeafTagNode = currentIndex === parts.length - 1;
-      let node = parent.nodes.find((child) =>
-        child.data.title === title && child.data.name === currentPath
-      );
+      let node = parent.nodes.find((child) => child.data.title === title && child.data.name === currentPath);
 
-      if (node) {
+      if (node) { // Node already exists
         if (isLeafTagNode && node.data.nodeType === "folder") {
-          node.data = {
-            name: currentPath,
-            title: title,
-            nodeType: "tag",
-            pageCount: tagCounts[tag] || 0,
-          };
+          // It was a folder, but now it's also a tag, so "upgrade" it.
+          node.data = { name: currentPath, title: title, nodeType: "tag", pageCount: tagCounts[tag] || 0 };
           const pages = tagPageMap.get(tag) || new Set();
-          const existingPageNames = new Set(node.nodes.map((n) => n.data.name));
-          const newPageNodes = Array.from(pages)
-            .filter((pageName) => !existingPageNames.has(pageName))
-            .sort()
-            .map((pageName) => ({
-              data: {
-                name: pageName,
-                title: pageName.includes("/")
-                  ? pageName.substring(pageName.lastIndexOf("/") + 1)
-                  : pageName,
-                nodeType: "page",
-              } as PageNodeData,
-              nodes: [],
-            }));
-          node.nodes.push(...newPageNodes);
+          const pageNodes = Array.from(pages).sort().map(pageName => ({ data: { name: pageName, title: pageName.includes('/') ? pageName.substring(pageName.lastIndexOf('/') + 1) : pageName, nodeType: "page" } as PageNodeData, nodes: [] }));
+          node.nodes.push(...pageNodes);
         } else if (isLeafTagNode && node.data.nodeType === "tag") {
-          if (node.nodes.filter((n) => n.data.nodeType === "page").length === 0) {
-            const pages = tagPageMap.get(tag) || new Set();
-            const pageNodes = Array.from(pages).sort().map((pageName) => ({
-              data: {
-                name: pageName,
-                title: pageName.includes("/")
-                  ? pageName.substring(pageName.lastIndexOf("/") + 1)
-                  : pageName,
-                nodeType: "page",
-              } as PageNodeData,
-              nodes: [],
-            }));
-            node.nodes.push(...pageNodes);
-          }
-          (node.data as TagNodeData).pageCount = tagCounts[tag] || 0;
+           // It's a tag, just update its count.
+           (node.data as TagNodeData).pageCount = tagCounts[tag] || 0;
         }
+        // Re-sort children
         node.nodes.sort((a, b) => {
-          const typeOrder = { folder: 0, tag: 0, page: 1 };
-          const aType = a.data.nodeType;
-          const bType = b.data.nodeType;
-          const aOrder = typeOrder[aType as keyof typeof typeOrder] ?? 99;
-          const bOrder = typeOrder[bType as keyof typeof typeOrder] ?? 99;
-          if (aOrder !== bOrder) return aOrder - bOrder;
-          return a.data.title.localeCompare(b.data.title);
+            const typeOrder = { folder: 0, tag: 0, page: 1 };
+            const aOrder = typeOrder[a.data.nodeType as keyof typeof typeOrder] ?? 99;
+            const bOrder = typeOrder[b.data.nodeType as keyof typeof typeOrder] ?? 99;
+            if (aOrder !== bOrder) return aOrder - bOrder;
+            return a.data.title.localeCompare(b.data.title);
         });
         return node;
       }
 
+      // Node doesn't exist, create it
       let newNode: TreeNode;
       if (isLeafTagNode) {
         const pages = tagPageMap.get(tag) || new Set();
-        const pageNodes = Array.from(pages).sort().map((pageName) => ({
-          data: {
-            name: pageName,
-            title: pageName.includes("/")
-              ? pageName.substring(pageName.lastIndexOf("/") + 1)
-              : pageName,
-            nodeType: "page",
-          } as PageNodeData,
-          nodes: [],
-        }));
-        newNode = {
-          data: {
-            name: currentPath,
-            title: title,
-            nodeType: "tag",
-            pageCount: tagCounts[tag] || 0,
-          } as TagNodeData,
-          nodes: pageNodes,
-        };
+        const pageNodes = Array.from(pages).sort().map(pageName => ({ data: { name: pageName, title: pageName.includes('/') ? pageName.substring(pageName.lastIndexOf('/') + 1) : pageName, nodeType: "page" } as PageNodeData, nodes: [] }));
+        newNode = { data: { name: currentPath, title: title, nodeType: "tag", pageCount: tagCounts[tag] || 0 } as TagNodeData, nodes: pageNodes };
       } else {
-        newNode = {
-          data: {
-            name: currentPath,
-            title: title,
-            nodeType: "folder",
-          } as FolderNodeData,
-          nodes: [],
-        };
+        newNode = { data: { name: currentPath, title: title, nodeType: "folder" } as FolderNodeData, nodes: [] };
       }
 
       parent.nodes.push(newNode);
+      // Sort siblings after adding a new node
       parent.nodes.sort((a, b) => {
-        const typeOrder = { folder: 0, tag: 0, page: 1 };
-        const aType = a.data.nodeType;
-        const bType = b.data.nodeType;
-        const aOrder = typeOrder[aType as keyof typeof typeOrder] ?? 99;
-        const bOrder = typeOrder[bType as keyof typeof typeOrder] ?? 99;
-        if (aOrder !== bOrder) {
-          return aOrder - bOrder;
-        } else {
-          return a.data.title.localeCompare(b.data.title);
-        }
+            const typeOrder = { folder: 0, tag: 0, page: 1 };
+            const aOrder = typeOrder[a.data.nodeType as keyof typeof typeOrder] ?? 99;
+            const bOrder = typeOrder[b.data.nodeType as keyof typeof typeOrder] ?? 99;
+            if (aOrder !== bOrder) {
+              return aOrder - bOrder;
+            }
+            return a.data.title.localeCompare(b.data.title);
       });
       return newNode;
     }, root);
   });
 
-  return {
-    nodes: root.nodes,
-  };
+  return { nodes: root.nodes };
 }

@@ -1,109 +1,59 @@
-import {
-  clientStore,
-  editor,
-  system,
-} from "@silverbulletmd/silverbullet/syscalls";
+// config.ts
+
+import { editor, system } from "@silverbulletmd/silverbullet/syscalls";
 import { z, ZodError } from "zod";
 
-// Keep PLUG_NAME and PLUG_DISPLAY_NAME (maybe update display name)
+/**
+ * The key used to identify the plug's settings in your CONFIG.md.
+ * This MUST match the key in your `config.set` block.
+ * e.g., `config.set { tagview = { ... } }`
+ */
 export const PLUG_NAME = "tagview";
+
+/**
+ * The user-friendly name shown in the UI.
+ */
 export const PLUG_DISPLAY_NAME = "Tag View";
 
-const ENABLED_STATE_KEY = "enableTagView";
-
-// Positions remain the same
-const POSITIONS = ["rhs", "lhs", "bhs", "modal"] as const;
-export type Position = typeof POSITIONS[number];
-
-// Remove or comment out page exclusion schemas as they don't apply to listing tags
-/*
-export const exclusionRuleByRegexSchema = z.object({ ... });
-export const exclusionRuleByTagsSchema = z.object({ ... });
-export const exclusionRuleByFunctionSchema = z.object({ ... });
-*/
-
+/**
+ * Defines the structure and default values for the plug's configuration.
+ * This is the "contract" for what the settings should look like.
+ */
 const tagViewConfigSchema = z.object({
   /**
    * Where to position the tree view in the UI.
+   * Can be "lhs" (left), "rhs" (right), "bhs" (bottom), or "modal".
    */
-  position: z.enum(POSITIONS).optional().default("lhs"),
+  position: z.enum(["lhs", "rhs", "bhs", "modal"]).optional().default("lhs"),
 
   /**
-   * The size of the treeview pane.
+   * The size (width for side panels, height for bottom) of the treeview pane in pixels.
    */
-  size: z.number().gt(0).optional().default(1),
-
-  /**
-   * Drag-and-drop options - Disabled for tags as it's not applicable.
-   */
-  // dragAndDrop: z.object({ ... }).optional().default({ enabled: false }), // Commented out or simplified
-
-  /**
-   * @deprecated - pageExcludeRegex removed as it's page-specific
-   */
-  // pageExcludeRegex: z.string().optional().default(""),
-
-  /**
-   * @deprecated - exclusions removed as they are page-specific
-   */
-  // exclusions: z.array(z.discriminatedUnion("type", [ ... ])).optional(),
-
-  // Potential future config: options for sorting tags, filtering tags?
+  size: z.number().gt(0).optional().default(320),
 });
 
-// Update Type Alias
+// This creates a TypeScript type from our schema.
 export type TagViewConfig = z.infer<typeof tagViewConfigSchema>;
 
-// Keep showConfigErrorNotification function (adapting message slightly if needed)
-let configErrorShown = false;
-async function showConfigErrorNotification(error: unknown) {
-  if (configErrorShown) {
-    return;
-  }
-  configErrorShown = true;
-  let errorMessage = `${typeof error}: ${String(error)}`;
-  if (error instanceof ZodError) {
-    const { formErrors, fieldErrors } = error.flatten();
-    const fieldErrorMessages = Object.keys(fieldErrors).map((field) =>
-      `\`${field}\` - ${fieldErrors[field]!.join(", ")}`
-    );
-    errorMessage = [...formErrors, ...fieldErrorMessages].join("; ");
-  }
-  await editor.flashNotification(
-    `There was an error with your ${PLUG_DISPLAY_NAME} configuration. Check your SETTINGS file: ${errorMessage}`, // Updated plug name
-    "error",
-  );
-}
-
-// Update getPlugConfig to use the new schema and provide defaults
+/**
+ * A reliable, validated function to get the plug's configuration.
+ * It reads from the space configuration, validates it, and applies defaults.
+ */
 export async function getPlugConfig(): Promise<TagViewConfig> {
-  const userConfig = await system.getSpaceConfig("tagview", {});
+  // Get the config object from the space, using PLUG_NAME as the key.
+  const userConfig = await system.getSpaceConfig(PLUG_NAME, {});
 
   try {
-    // Use the new schema
+    // Parse the user's config. If any values are missing, Zod applies the defaults.
     return tagViewConfigSchema.parse(userConfig || {});
-  } catch (_err) {
-    if (!configErrorShown) {
-      showConfigErrorNotification(_err);
-      configErrorShown = true;
-    }
-    // Fallback to the default configuration using the new schema
+  } catch (e) {
+    // If the config is invalid, show an error and return the default settings.
+    console.error(`Error parsing ${PLUG_DISPLAY_NAME} config:`, e);
+    await editor.flashNotification(
+      `Invalid configuration for ${PLUG_DISPLAY_NAME}, using defaults.`,
+      "error",
+    );
+    // Fallback to a completely default configuration on error.
     return tagViewConfigSchema.parse({});
   }
-}
-
-// Keep isTreeViewEnabled, setTreeViewEnabled, getCustomStyles as they are general UI state/options
-export async function isTagViewEnabled() {
-  return !!(await clientStore.get(ENABLED_STATE_KEY));
-}
-
-export async function setTagViewEnabled(value: boolean) {
-  return await clientStore.set(ENABLED_STATE_KEY, value);
-}
-
-export async function getCustomStyles() {
-  const customStyles = await editor.getUiOption("customStyles") as
-    | string
-    | undefined;
-  return customStyles;
 }

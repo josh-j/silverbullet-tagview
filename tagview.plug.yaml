@@ -1,30 +1,30 @@
 name: tagview
-version: 0.19 # Incremented version
+version: 0.20 # Incremented version again to signify a fix
 description: Displays a hierarchical tree view of tags and associated pages.
 assets:
   - "assets/**/*.*"
+
 functions:
   # Internal API for the panel's data source
+  # CORRECTED PATH: Points to where the function now lives.
   getTagTree:
-    path: "./tagview.ts:getTagTree"
+    path: "./api.ts:getTagTree"
 
-  # Functions exposed to the system
+  # Functions exposed to the system (these are in tagview.ts)
   hide:
     path: "./tagview.ts:hideTagView"
   show:
     path: "./tagview.ts:showTagView"
   showIfEnabled:
     path: "./tagview.ts:showTagViewIfEnabled"
+    # These events will trigger the showIfEnabled function
     events:
       - editor:init
-      - editor:pageLoaded
-      - editor:pageSaved
-      - file:deleted
 
-  # User facing command
+  # User facing command (this is in tagview.ts)
   toggle:
     path: "./tagview.ts:toggleTagView"
     command:
       name: "Tags: Toggle View"
-      key: Ctrl-alt-b
-      mac: Cmd-alt-b
+      key: "Ctrl-alt-b"
+      mac: "Cmd-alt-b"
