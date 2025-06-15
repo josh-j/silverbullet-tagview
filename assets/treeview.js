@@ -95,6 +95,14 @@ function createTagTreeView(config) {
            console.error("Panel: Error navigating to page:", e);
            syscall("editor.flashNotification", `Error navigating: ${e.message}`, "error");
         }
+      } else if (nodeType === 'header') {
+        console.log("Panel: Header node clicked, navigating to position:", node.data.pos);
+        try {
+          await syscall("editor.moveCursor", node.data.pos);
+        } catch (e) {
+           console.error("Panel: Error navigating to header:", e);
+           syscall("editor.flashNotification", `Error navigating to header: ${e.message}`, "error");
+        }
       } else if (nodeType === 'folder' || nodeType === 'tag') {
         console.log(`Panel: ${nodeType} node label clicked, toggling:`, nodeName);
         node.toggle();
@@ -116,12 +124,20 @@ function createTagTreeView(config) {
         let content = title; // Use title directly
 
         const isCurrentPage = (data.nodeType === 'page' && data.name === panelCurrentPage);
+        
+        // Add indentation for header levels
+        let indentStyle = '';
+        if (data.nodeType === 'header' && data.level) {
+          const indentLevel = Math.max(0, data.level - 1);
+          indentStyle = `padding-left: ${indentLevel * 12}px;`;
+        }
 
         return `
           <span
             data-node-type="${data.nodeType}"
             data-current-page="${isCurrentPage}"
             title="${data.name}"
+            style="${indentStyle}"
           >
              ${content}
           </span>`;
