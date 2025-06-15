@@ -1,10 +1,14 @@
 name: tagview
-version: 0.18 # Consider incrementing version
+version: 0.19 # Incremented version
 description: Displays a hierarchical tree view of tags and associated pages.
 assets:
   - "assets/**/*.*"
 functions:
-  # API
+  # Internal API for the panel's data source
+  getTagTree:
+    path: "./tagview.ts:getTagTree"
+
+  # Functions exposed to the system
   hide:
     path: "./tagview.ts:hideTagView"
   show:
@@ -21,9 +25,6 @@ functions:
   toggle:
     path: "./tagview.ts:toggleTagView"
     command:
-      name: "Tag Tree: Toggle" # Or keep "Tree View: Toggle" if preferred
+      name: "Tags: Toggle View"
       key: Ctrl-alt-b
       mac: Cmd-alt-b
-
-  # REMOVED: getPagesForTag - Not needed with pre-loading approach
-  # REMOVED: navigateToTagQuery - Not needed with new click handler
