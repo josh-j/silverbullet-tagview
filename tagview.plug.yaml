@@ -6,11 +6,11 @@ assets:
 functions:
   # API
   hide:
-    path: "./tagview.ts:hideTree"
+    path: "./tagview.ts:hideTagView"
   show:
-    path: "./tagview.ts:showTree"
+    path: "./tagview.ts:showTagView"
   showIfEnabled:
-    path: "./tagview.ts:showTreeIfEnabled"
+    path: "./tagview.ts:showTagViewIfEnabled"
     events:
       - editor:init
       - editor:pageLoaded
@@ -19,7 +19,7 @@ functions:
 
   # User facing command
   toggle:
-    path: "./tagview.ts:toggleTree"
+    path: "./tagview.ts:toggleTagView"
     command:
       name: "Tag Tree: Toggle" # Or keep "Tree View: Toggle" if preferred
       key: Ctrl-alt-b
