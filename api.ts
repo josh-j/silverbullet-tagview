@@ -8,13 +8,14 @@
     type NodeData = FolderNodeData | TagNodeData | PageNodeData;
     export type TreeNode = { data: NodeData; nodes: TreeNode[]; };
 
+
     export async function getTagTree(config: TagTreeViewConfig): Promise<{ nodes: TreeNode[] }> {
       // --- Data fetching and processing (tagPageMap, tagCounts, uniqueTags) remain the same ---
       let tagIndexEntries: TagIndexEntry[] = [];
       try {
-        tagIndexEntries = await system.invokeFunction("index.queryLuaObjects", "tag", {});
+        tagIndexEntries = await system.invokeFunction("index.queryObjects", "tag", {});
       } catch (e) {
-        console.error("Failed to fetch tags via index.queryLuaObjects('tag',...):", e);
+        console.error("Failed to fetch tags via index.queryObjects('tag',...):", e);
         editor.flashNotification(`Error fetching tags: ${e.message}`, "error");
         return { nodes: [] };
       }
@@ -108,3 +109,4 @@
         nodes: root.nodes,
       };
     }
+    
