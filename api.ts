@@ -14,7 +14,7 @@
       try {
         tagIndexEntries = await system.invokeFunction("index.queryLuaObjects", "tag", {});
       } catch (e) {
-        console.error("Failed to fetch tags via index.queryObjects('tag',...):", e);
+        console.error("Failed to fetch tags via index.queryLuaObjects('tag',...):", e);
         editor.flashNotification(`Error fetching tags: ${e.message}`, "error");
         return { nodes: [] };
       }
