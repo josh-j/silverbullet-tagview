@@ -1,163 +1,153 @@
-import { asset, editor, system } from "@silverbulletmd/silverbullet/syscalls";
-import { getTagTree } from "./api.ts"; // Using getTagTree for your plug
-import {
-  getCustomStyles,
-  isTagViewEnabled,
-  PLUG_DISPLAY_NAME,
-  PLUG_NAME,
-  Position,
-  setTagViewEnabled,
-  TagViewConfig as TagTreeViewConfig, // Assuming you still use TagTreeViewConfig
-} from "./config.ts";
-import { getPlugConfig } from "./config.ts";
+import { editor, system } from "@silverbulletmd/silverbullet/syscalls";
+import { PLUG_DISPLAY_NAME, TagTreeViewConfig } from "./config.ts";
 
-let currentPosition: Position | undefined;
+// --- Type Definitions ---
+interface PageQueryResult {
+  name: string;
+  tags?: string[]; // Tags can be optional
+  [key: string]: any;
+}
 
-// --- toggleTree, hideTree, showTreeIfEnabled remain the same ---
+type PageNodeData = { name: string; title: string; nodeType: "page"; };
+type FolderNodeData = { name: string; title: string; nodeType: "folder"; };
+type TagNodeData = { name: string; title: string; nodeType: "tag"; pageCount: number; };
+type NodeData = FolderNodeData | TagNodeData | PageNodeData;
 
-export async function toggleTagView() {
-  const currentValue = await isTagViewEnabled();
-  if (!currentValue) {
-    await showTagView();
-  } else {
-    await hideTagView();
-  }
+export type TreeNode = { data: NodeData; nodes: TreeNode[]; };
+
+// --- Panel Control Functions (as defined in YAML) ---
+
+export async function showTagView() {
+  const config = await system.invokeFunction("config.get", PLUG_DISPLAY_NAME) as TagTreeViewConfig;
+  const panelHtml = `
+    <div class="sb-tag-view-root">
+      <div class="sb-tag-view-header">
+        <span class="sb-tag-view-title">${PLUG_DISPLAY_NAME}</span>
+      </div>
+      <div class="sb-tag-view-tree" style="overflow: auto; flex-grow: 1;">
+        {{#if @loading}}
+          <div class="sb-tag-view-loading">Loading...</div>
+        {{else}}
+          {{#render tree}}
+        {{/if}}
+      </div>
+    </div>`;
+
+  // The data source string now correctly calls the exported getTagTree function
+  const panelDataSource = `return system.invokeFunction("tagview.getTagTree");`;
+
+  await editor.showPanel("left", config.panelSize, panelHtml, panelDataSource);
 }
 
 export async function hideTagView() {
-  if (currentPosition) {
-    await editor.hidePanel(currentPosition);
-    currentPosition = undefined;
-    await setTagViewEnabled(false);
-  }
+  await editor.hidePanel("left");
+}
+
+export async function toggleTagView() {
+    // This is a simplified toggle; for a true toggle, you'd need to check if the panel is visible.
+    // However, calling showPanel is often sufficient as it will create or focus the panel.
+    await showTagView();
 }
 
 export async function showTagViewIfEnabled() {
-  try {
-    const env = await system.getEnv();
-    if (env === "server") { return; }
-    if (await isTagViewEnabled()) {
-      return await showTagView();
-    }
-  } catch (err) {
-    console.error(`${PLUG_DISPLAY_NAME}: showTagViewIfEnabled failed`, err);
+  const config = await system.invokeFunction("config.get", PLUG_DISPLAY_NAME) as TagTreeViewConfig;
+  if (config.showOnStartup) {
+    await showTagView();
   }
 }
 
-/**
- * Shows the hierarchical tag treeview with folder icons for header buttons
- * and chevron icons for nodes.
- */
-export async function showTagView() {
-  const config: TagTreeViewConfig = await getPlugConfig(); // Use your config type
+// --- Data Fetching Function (as defined in YAML) ---
 
-  if (currentPosition && config.position !== currentPosition) {
-    await hideTagView();
+export async function getTagTree(): Promise<{ nodes: TreeNode[] }> {
+  let allPages: PageQueryResult[] = [];
+  try {
+    // Using the correct v2 API call
+    allPages = await system.invokeFunction("index.queryObjects", "page", {});
+  } catch (e) {
+    console.error("Failed to fetch pages via index.queryObjects('page', {}):", e);
+    editor.flashNotification(`Error fetching pages: ${e.message}`, "error");
+    return { nodes: [] };
   }
 
-  // Fetch necessary assets, loading the correct icons
-  try {
-      const [
-        // CSS and JS
-        sortableTreeCss,
-        sortableTreeJs,
-        plugCss, // Should be treeview_css_final content
-        plugJs, // Should be treeview_js_final content
-        // Header Icons (Folder +/-)
-        iconHeaderCollapse, // Use folder-minus for Collapse All button
-        iconHeaderExpand,   // Use folder-plus for Expand All button
-        // Other Header Icons
-        iconNavigation2, // Icon for Reveal Current Page
-        iconRefresh, // Icon for Refresh
-        iconXCircle, // Icon for Close
-        // Node Icons (Chevrons - Content loaded as strings)
-        nodeIconCollapsedSvg, // chevron-right SVG content for nodes
-        nodeIconOpenSvg,      // chevron-down SVG content for nodes
-        // Data
-        currentPage
-      ] = await Promise.all([
-        // Assets
-        asset.readAsset(PLUG_NAME, "assets/sortable-tree/sortable-tree.css"),
-        asset.readAsset(PLUG_NAME, "assets/sortable-tree/sortable-tree.js"),
-        asset.readAsset(PLUG_NAME, "assets/tagview.css"),
-        asset.readAsset(PLUG_NAME, "assets/tagview.js"),
-        // Header Icons (Load folder icons)
-        asset.readAsset(PLUG_NAME, "assets/icons/folder-minus.svg"), // Load folder-minus
-        asset.readAsset(PLUG_NAME, "assets/icons/folder-plus.svg"),  // Load folder-plus
-        asset.readAsset(PLUG_NAME, "assets/icons/navigation-2.svg"),
-        asset.readAsset(PLUG_NAME, "assets/icons/refresh-cw.svg"),
-        asset.readAsset(PLUG_NAME, "assets/icons/x-circle.svg"),
-        // Node Icons (Load chevron SVG file *content*)
-        asset.readAsset(PLUG_NAME, "assets/icons/chevron-right.svg"), // Load chevron-right content
-        asset.readAsset(PLUG_NAME, "assets/icons/chevron-down.svg"),  // Load chevron-down content
-        // Data
-        editor.getCurrentPage(),
-      ]);
-
-      // Fetch the hierarchical tag tree data
-      const { nodes } = await getTagTree(config); // Use your API function
-      const customStyles = await getCustomStyles();
-
-      // Prepare config for the frontend JS, including node icon SVG content
-      const tagViewJsConfig = {
-        nodes,
-        currentPage, // Pass current page for highlighting
-        treeElementId: "tagview-tree",
-        dragAndDrop: { enabled: false }, // Keep D&D disabled
-        // Pass SVG content for node icons
-        nodeIcons: {
-            collapsed: nodeIconCollapsedSvg, // Pass chevron-right content
-            open: nodeIconOpenSvg           // Pass chevron-down content
+  const tagPageMap = new Map<string, Set<string>>();
+  for (const page of allPages) {
+    if (page && Array.isArray(page.tags) && typeof page.name === "string" && page.name) {
+      for (const tagName of page.tags) {
+        if (!tagPageMap.has(tagName)) {
+          tagPageMap.set(tagName, new Set<string>());
         }
-      };
-
-      // Show the panel with header matching the example structure
-      await editor.showPanel(
-        config.position,
-        config.size,
-        // Panel HTML - Use FOLDER icons for expand/collapse buttons
-        `
-          <link rel="stylesheet" href="/.client/main.css" />
-          <style>
-            ${sortableTreeCss}
-            ${plugCss} /* CSS matching the desired appearance */
-            ${customStyles ?? ""}
-          </style>
-          <div class="tagview-root">
-            <div class="tagview-header">
-              <div class="tagview-actions">
-                <div class="tagview-actions-left">
-                  <button type="button" data-tagview-action="expand-all" title="Expand all">${iconHeaderExpand}</button>
-                  <button type="button" data-tagview-action="collapse-all" title="Collapse all">${iconHeaderCollapse}</button>
-                  <button type="button" data-tagview-action="reveal-current-page" title="Reveal current page">${iconNavigation2}</button>
-                  <button type="button" data-tagview-action="refresh" title="Refresh tag view">${iconRefresh}</button>
-                </div>
-                <div class="tagview-actions-right">
-                  <button type="button" data-tagview-action="close-panel" title="Close tag view">${iconXCircle}</button>
-                </div>
-              </div>
-            </div>
-            <div id="${tagViewJsConfig.treeElementId}"></div>
-          </div>`,
-        // Panel JavaScript
-        `
-          ${sortableTreeJs}
-          ${plugJs} // JS using passed icons and handling actions
-          // Ensure initializeTreeViewPanel is defined and pass the config
-          if (typeof initializeTagViewPanel === 'function') {
-            initializeTagViewPanel(${JSON.stringify(tagViewJsConfig)});
-          } else {
-            console.error("Error: initializeTagViewPanel is not defined!");
-          }
-        `,
-      );
-
-      await setTagViewEnabled(true);
-      currentPosition = config.position;
-
-  } catch (error) {
-      console.error("Error loading assets or showing tag view:", error);
-      editor.flashNotification(`Error loading tag view: ${error.message}`, "error");
-      await hideTagView();
+        tagPageMap.get(tagName)!.add(page.name);
+      }
+    }
   }
-}
+
+  const tagCounts: Record<string, number> = {};
+  const uniqueTags: string[] = [];
+  for (const [tagName, pageSet] of tagPageMap.entries()) {
+    tagCounts[tagName] = pageSet.size;
+    uniqueTags.push(tagName);
+  }
+  uniqueTags.sort((a, b) => a.localeCompare(b));
+
+  const root: { nodes: TreeNode[] } = { nodes: [] };
+  uniqueTags.forEach((tag) => {
+    const parts = tag.split("/");
+    parts.reduce((parent, title, currentIndex) => {
+      const currentPath = parts.slice(0, currentIndex + 1).join("/");
+      const isLeafTagNode = currentIndex === parts.length - 1;
+      let node = parent.nodes.find((child) => child.data.title === title && child.data.name === currentPath);
+
+      if (node) {
+        if (isLeafTagNode && node.data.nodeType === "folder") {
+          node.data = { name: currentPath, title: title, nodeType: "tag", pageCount: tagCounts[tag] || 0 };
+          const pages = tagPageMap.get(tag) || new Set();
+          const existingPageNames = new Set(node.nodes.map(n => n.data.name));
+          const newPageNodes = Array.from(pages).filter(pageName => !existingPageNames.has(pageName)).sort().map(pageName => ({ data: { name: pageName, title: pageName.includes('/') ? pageName.substring(pageName.lastIndexOf('/') + 1) : pageName, nodeType: "page" } as PageNodeData, nodes: [] }));
+          node.nodes.push(...newPageNodes);
+        } else if (isLeafTagNode && node.data.nodeType === "tag") {
+           if (node.nodes.filter(n => n.data.nodeType === 'page').length === 0) {
+                const pages = tagPageMap.get(tag) || new Set();
+                const pageNodes = Array.from(pages).sort().map(pageName => ({ data: { name: pageName, title: pageName.includes('/') ? pageName.substring(pageName.lastIndexOf('/') + 1) : pageName, nodeType: "page" } as PageNodeData, nodes: [] }));
+                node.nodes.push(...pageNodes);
+           }
+           (node.data as TagNodeData).pageCount = tagCounts[tag] || 0;
+        }
+        node.nodes.sort((a, b) => {
+            const typeOrder = { folder: 0, tag: 0, page: 1 };
+            const aType = a.data.nodeType; const bType = b.data.nodeType;
+            const aOrder = typeOrder[aType as keyof typeof typeOrder] ?? 99;
+            const bOrder = typeOrder[bType as keyof typeof typeOrder] ?? 99;
+            if (aOrder !== bOrder) return aOrder - bOrder;
+            return a.data.title.localeCompare(b.data.title);
+        });
+        return node;
+      }
+
+      let newNode: TreeNode;
+      if (isLeafTagNode) {
+        const pages = tagPageMap.get(tag) || new Set();
+        const pageNodes = Array.from(pages).sort().map(pageName => ({ data: { name: pageName, title: pageName.includes('/') ? pageName.substring(pageName.lastIndexOf('/') + 1) : pageName, nodeType: "page" } as PageNodeData, nodes: [] }));
+        newNode = { data: { name: currentPath, title: title, nodeType: "tag", pageCount: tagCounts[tag] || 0 } as TagNodeData, nodes: pageNodes };
+      } else {
+        newNode = { data: { name: currentPath, title: title, nodeType: "folder" } as FolderNodeData, nodes: [] };
+      }
+
+      parent.nodes.push(newNode);
+      parent.nodes.sort((a, b) => {
+            const typeOrder = { folder: 0, tag: 0, page: 1 };
+            const aType = a.data.nodeType;
+            const bType = b.data.nodeType;
+            const aOrder = typeOrder[aType as keyof typeof typeOrder] ?? 99;
+            const bOrder = typeOrder[bType as keyof typeof typeOrder] ?? 99;
+            if (aOrder !== bOrder) {
+              return aOrder - bOrder;
+            } else {
+              return a.data.title.localeCompare(b.data.title);
+            }
+      });
+      return newNode;
+    }, root);
+  });
+
+  return { nodes: root.nodes };
+}// tagview.ts
