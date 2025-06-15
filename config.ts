@@ -89,7 +89,7 @@ export async function getPlugConfig(): Promise<TagViewConfig> {
       configErrorShown = true;
     }
     // Fallback to the default configuration using the new schema
-    return tagTreeViewConfigSchema.parse({});
+    return tagViewConfigSchema.parse({});
   }
 }
 
