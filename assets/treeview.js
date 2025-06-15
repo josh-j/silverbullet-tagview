@@ -96,13 +96,19 @@ function createTagTreeView(config) {
            syscall("editor.flashNotification", `Error navigating: ${e.message}`, "error");
         }
       } else if (nodeType === 'header') {
-        console.log("Panel: Header node clicked, navigating to position:", node.data.pos);
-        try {
-          // Use the same navigation approach as the Lua toc widget
-          await syscall("editor.navigate", `${panelCurrentPage}@${node.data.pos}`);
-        } catch (e) {
-           console.error("Panel: Error navigating to header:", e);
-           syscall("editor.flashNotification", `Error navigating to header: ${e.message}`, "error");
+        // Check if this header has children (sub-headers)
+        if (node.children && node.children[1] && node.children[1].children.length > 0) {
+          console.log("Panel: Header with children clicked, toggling:", nodeName);
+          node.toggle();
+        } else {
+          console.log("Panel: Header node clicked, navigating to position:", node.data.pos);
+          try {
+            // Use the same navigation approach as the Lua toc widget
+            await syscall("editor.navigate", `${panelCurrentPage}@${node.data.pos}`);
+          } catch (e) {
+             console.error("Panel: Error navigating to header:", e);
+             syscall("editor.flashNotification", `Error navigating to header: ${e.message}`, "error");
+          }
         }
       } else if (nodeType === 'folder' || nodeType === 'tag') {
         console.log(`Panel: ${nodeType} node label clicked, toggling:`, nodeName);
