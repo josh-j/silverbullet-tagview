@@ -252,6 +252,50 @@ body {
     color: var(--treeview-header-color);
     font-weight: 600;
     opacity: 0.95;
+    border-left: 3px solid transparent;
+}
+
+/* Header level-specific styling */
+.tree__label > span[data-node-type="header"][data-header-level="1"] {
+    font-weight: 700;
+    font-size: 1.1em;
+    border-left-color: var(--ui-accent-color);
+    background-color: var(--subtle-background-color);
+}
+
+.tree__label > span[data-node-type="header"][data-header-level="2"] {
+    font-weight: 650;
+    font-size: 1.05em;
+    border-left-color: var(--text-muted);
+    padding-left: 8px;
+}
+
+.tree__label > span[data-node-type="header"][data-header-level="3"] {
+    font-weight: 600;
+    border-left-color: var(--text-muted);
+    opacity: 0.9;
+    padding-left: 12px;
+}
+
+.tree__label > span[data-node-type="header"][data-header-level="4"] {
+    font-weight: 550;
+    opacity: 0.85;
+    font-style: italic;
+    padding-left: 16px;
+}
+
+.tree__label > span[data-node-type="header"][data-header-level="5"] {
+    font-weight: 500;
+    opacity: 0.8;
+    font-size: 0.95em;
+    padding-left: 20px;
+}
+
+.tree__label > span[data-node-type="header"][data-header-level="6"] {
+    font-weight: 450;
+    opacity: 0.75;
+    font-size: 0.9em;
+    padding-left: 24px;
 }
 
 .tree__label > span[data-node-type="header"]:hover {
@@ -284,4 +328,43 @@ body {
     font-weight: 600;
     margin-right: 8px;
     color: var(--text-color);
+}
+
+/* View switcher styling */
+.treeview-view-switcher {
+    display: flex;
+    gap: 2px;
+    margin-bottom: 8px;
+    border-radius: 6px;
+    background-color: var(--subtle-background-color);
+    padding: 2px;
+}
+
+.treeview-view-switcher button {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-family: var(--editor-font);
+    font-size: var(--editor-font-size);
+    font-weight: 500;
+    padding: 6px 12px;
+    border-radius: 4px;
+    transition: all 0.15s ease;
+}
+
+.treeview-view-switcher button:hover {
+    background-color: var(--hover-background-color);
+    color: var(--text-color);
+}
+
+.treeview-view-switcher button.active {
+    background-color: var(--ui-accent-color);
+    color: var(--accent-text-color, white);
+    font-weight: 600;
+}
+
+.treeview-view-switcher button.active:hover {
+    background-color: var(--ui-accent-color);
+    filter: brightness(1.1);
 }

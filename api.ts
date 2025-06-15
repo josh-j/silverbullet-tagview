@@ -116,7 +116,6 @@
         const lines = pageText.split('\n');
         const headers: TreeNode[] = [];
         
-        let currentPos = 0;
         for (let i = 0; i < lines.length; i++) {
           const line = lines[i];
           const headerMatch = line.match(/^(#{1,6})\s+(.+)$/);
@@ -131,13 +130,11 @@
                 title: title,
                 nodeType: "header",
                 level: level,
-                pos: currentPos
+                pos: i + 1 // Use line number (1-based)
               } as HeaderNodeData,
               nodes: []
             });
           }
-          
-          currentPos += line.length + 1; // +1 for newline
         }
         
         return { nodes: headers };

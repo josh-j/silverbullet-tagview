@@ -25,16 +25,9 @@ functions:
       key: Ctrl-alt-b
       mac: Cmd-alt-b
 
-  # API - Outline View
-  hideOutline:
-    path: "./treeview.ts:hideOutline"
-  showOutline:
-    path: "./treeview.ts:showOutline"
-  showOutlineIfEnabled:
-    path: "./treeview.ts:showOutlineIfEnabled"
-    events:
-      - editor:pageLoaded
-      - editor:pageSaved
+  # Switch between views
+  switchView:
+    path: "./treeview.ts:switchView"
 
   # User facing command - Outline View
   toggleOutline:
