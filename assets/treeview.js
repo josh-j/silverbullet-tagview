@@ -96,9 +96,9 @@ function createTagTreeView(config) {
            syscall("editor.flashNotification", `Error navigating: ${e.message}`, "error");
         }
       } else if (nodeType === 'header') {
-        console.log("Panel: Header node clicked, navigating to position:", node.data.pos);
+        console.log("Panel: Header node clicked, navigating to line:", node.data.pos);
         try {
-          await syscall("editor.moveCursor", node.data.pos);
+          await syscall("editor.moveCursorToLine", node.data.pos);
         } catch (e) {
            console.error("Panel: Error navigating to header:", e);
            syscall("editor.flashNotification", `Error navigating to header: ${e.message}`, "error");
@@ -125,19 +125,18 @@ function createTagTreeView(config) {
 
         const isCurrentPage = (data.nodeType === 'page' && data.name === panelCurrentPage);
         
-        // Add indentation for header levels
-        let indentStyle = '';
+        // Add header level as data attribute for CSS targeting
+        let additionalAttributes = '';
         if (data.nodeType === 'header' && data.level) {
-          const indentLevel = Math.max(0, data.level - 1);
-          indentStyle = `padding-left: ${indentLevel * 12}px;`;
+          additionalAttributes = `data-header-level="${data.level}"`;
         }
 
         return `
           <span
             data-node-type="${data.nodeType}"
             data-current-page="${isCurrentPage}"
+            ${additionalAttributes}
             title="${data.name}"
-            style="${indentStyle}"
           >
              ${content}
           </span>`;
@@ -181,7 +180,16 @@ function initializeTreeViewPanel(config) {
       }
       case "refresh": {
         tree.clearState();
-        syscall("system.invokeFunction", "treeview.show");
+        const currentView = config.viewType || "tags";
+        syscall("system.invokeFunction", "treeview.switchView", currentView);
+        return true;
+      }
+      case "switch-tags": {
+        syscall("system.invokeFunction", "treeview.switchView", "tags");
+        return true;
+      }
+      case "switch-outline": {
+        syscall("system.invokeFunction", "treeview.switchView", "outline");
         return true;
       }
       case "reveal-current-page": {

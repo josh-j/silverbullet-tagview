@@ -4,15 +4,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a SilverBullet plug that provides two main navigation features:
+This is a SilverBullet plug that provides a unified navigation panel with two view modes:
 1. **Tag Tree View**: Hierarchical tag-based tree view for navigating pages by tags
 2. **Outline View**: Shows all headers in the current page for quick navigation
 
+The panel includes view switcher buttons to toggle between modes within the same interface.
+
 **Key Architecture:**
-- `treeview.ts` - Main plug entry point with UI panel management for both views
+- `treeview.ts` - Main plug entry point with unified panel (`showUnifiedPanel()`) supporting both views
 - `api.ts` - Core data fetching: `getTagTree()` for tags, `getOutlineTree()` for headers
 - `config.ts` - Configuration management with Zod validation and state management
-- `assets/` - Contains UI assets (CSS, JS, SVG icons)
+- `assets/` - Contains UI assets (CSS, JS, SVG icons) with view switcher styling
 - `treeview.plug.yaml` - Plug manifest defining functions and events for both views
 
 ## Development Commands
@@ -52,25 +54,27 @@ deno task build && cp *.plug.js /path/to/space/_plug/
 
 ### Outline View
 1. **Page Content**: Uses `editor.getText()` to get current page markdown content
-2. **Header Parsing**: Regex matches headers (#{1,6}) and extracts level, title, and position
-3. **Header Navigation**: Click handler uses `editor.moveCursor(pos)` to jump to header positions
-4. **Visual Hierarchy**: CSS indentation based on header level (H1, H2, H3, etc.)
+2. **Header Parsing**: Regex matches headers (#{1,6}) and extracts level, title, and line number
+3. **Header Navigation**: Click handler uses `editor.moveCursorToLine(lineNumber)` to jump to headers
+4. **Visual Hierarchy**: CSS styling with font weight, size, and left border based on header level
+5. **Level-specific Styling**: H1-H6 headers have distinct visual appearance (weight, size, opacity, italics)
 
 ## Key Functions
 
-**Tag Tree View:**
-- `getTagTree()` in api.ts:11 - Builds hierarchical tag structure from flat tag index
-- `showTree()` in treeview.ts:51 - Renders the tag tree view panel with all assets
-- `toggleTree()` - Command: "Tag Tree: Toggle" (Ctrl+Alt+B / Cmd+Alt+B)
-
-**Outline View:**
-- `getOutlineTree()` in api.ts:112 - Extracts headers from current page content
-- `showOutline()` in treeview.ts:165 - Renders the outline view panel
+**Unified Panel:**
+- `showUnifiedPanel(viewType)` in treeview.ts:70 - Main function rendering either view mode
+- `switchView(viewType)` - Switches between "tags" and "outline" modes
+- `toggleTree()` - Command: "Tag Tree: Toggle" (Ctrl+Alt+B / Cmd+Alt+B) 
 - `toggleOutline()` - Command: "Outline: Toggle" (Ctrl+Alt+O / Cmd+Alt+O)
 
-**Shared:**
-- Tree node sorting prioritizes folders/tags first, then pages, all alphabetically
-- Header nodes use position-based navigation with `editor.moveCursor()`
+**Data Functions:**
+- `getTagTree()` in api.ts:11 - Builds hierarchical tag structure from flat tag index
+- `getOutlineTree()` in api.ts:113 - Extracts headers from current page content with line numbers
+
+**Navigation:**
+- Tag/page nodes use `editor.navigate(pageName)` for page navigation
+- Header nodes use `editor.moveCursorToLine(lineNumber)` for precise positioning
+- View switcher buttons in panel header for seamless mode switching
 
 ## Asset Dependencies
 
