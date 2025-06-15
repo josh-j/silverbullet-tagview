@@ -1,0 +1,30 @@
+name: treeview
+version: 0.18 # Consider incrementing version
+description: Displays a hierarchical tree view of tags and associated pages.
+assets:
+  - "assets/**/*.*"
+functions:
+  # API
+  hide:
+    path: "./treeview.ts:hideTree"
+  show:
+    path: "./treeview.ts:showTree"
+  showIfEnabled:
+    path: "./treeview.ts:showTreeIfEnabled"
+    events:
+      - editor:init
+      - editor:pageLoaded
+      - editor:pageSaved
+      - file:deleted
+
+  # User facing command
+  toggle:
+    path: "./treeview.ts:toggleTree"
+    command:
+      name: "Tag Tree: Toggle" # Or keep "Tree View: Toggle" if preferred
+      key: Ctrl-alt-b
+      mac: Cmd-alt-b
+
+  # REMOVED: getPagesForTag - Not needed with pre-loading approach
+  # REMOVED: navigateToTagQuery - Not needed with new click handler
+
