@@ -75,7 +75,6 @@ async function showConfigErrorNotification(error: unknown) {
   );
 }
 
-
 // Update getPlugConfig to use the new schema and provide defaults
 export async function getPlugConfig(): Promise<TagViewConfig> {
   const userConfig = await system.getSpaceConfig("tagview", {});
