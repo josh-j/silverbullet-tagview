@@ -113,7 +113,7 @@
     export async function getOutlineTree(): Promise<{ nodes: TreeNode[] }> {
       try {
         const pageText = await editor.getText();
-        const headers: TreeNode[] = [];
+        const flatHeaders: HeaderNodeData[] = [];
         
         // Find headers with their character positions
         let currentPos = 0;
@@ -127,22 +127,45 @@
             const level = headerMatch[1].length;
             const title = headerMatch[2].trim();
             
-            headers.push({
-              data: {
-                name: `header-${i}`,
-                title: title,
-                nodeType: "header",
-                level: level,
-                pos: currentPos // Use character position like Lua toc
-              } as HeaderNodeData,
-              nodes: []
+            flatHeaders.push({
+              name: `header-${i}`,
+              title: title,
+              nodeType: "header",
+              level: level,
+              pos: currentPos // Use character position like Lua toc
             });
           }
           
           currentPos += line.length + 1; // +1 for newline
         }
         
-        return { nodes: headers };
+        // Build hierarchical structure
+        const root: TreeNode[] = [];
+        const stack: TreeNode[] = []; // Stack to keep track of parent headers
+        
+        for (const headerData of flatHeaders) {
+          const headerNode: TreeNode = {
+            data: headerData,
+            nodes: []
+          };
+          
+          // Find the correct parent by popping headers from stack until we find one with a lower level
+          while (stack.length > 0 && stack[stack.length - 1].data.level >= headerData.level) {
+            stack.pop();
+          }
+          
+          // Add this header as a child of the current parent (or root if no parent)
+          if (stack.length === 0) {
+            root.push(headerNode);
+          } else {
+            stack[stack.length - 1].nodes.push(headerNode);
+          }
+          
+          // Push this header onto the stack as a potential parent
+          stack.push(headerNode);
+        }
+        
+        return { nodes: root };
       } catch (error) {
         console.error("Error getting outline:", error);
         editor.flashNotification(`Error getting outline: ${error.message}`, "error");

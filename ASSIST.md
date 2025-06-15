@@ -54,10 +54,12 @@ deno task build && cp *.plug.js /path/to/space/_plug/
 
 ### Outline View
 1. **Page Content**: Uses `editor.getText()` to get current page markdown content
-2. **Header Parsing**: Regex matches headers (#{1,6}) and extracts level, title, and line number
-3. **Header Navigation**: Click handler uses `editor.navigate(pageName@position)` for proper scrolling to headers
-4. **Visual Hierarchy**: Bullet-based styling with distinct symbols for each header level
-5. **Level-specific Bullets**: H1 (●), H2 (○), H3 (▪), H4 (▫), H5 (‣), H6 (‧) with progressive indentation
+2. **Header Parsing**: Regex matches headers (#{1,6}) and extracts level, title, and character position
+3. **Hierarchical Structure**: Headers are nested based on level (H1 contains H2-H6, H2 contains H3-H6, etc.)
+4. **Header Navigation**: Click on leaf headers navigates using `editor.navigate(pageName@position)`
+5. **Folding Support**: Click on headers with children toggles expand/collapse state
+6. **Visual Hierarchy**: Bullet-based styling with distinct symbols for each header level
+7. **Level-specific Bullets**: H1 (●), H2 (○), H3 (▪), H4 (▫), H5 (‣), H6 (‧) with progressive indentation
 
 ## Key Functions
 
@@ -69,11 +71,12 @@ deno task build && cp *.plug.js /path/to/space/_plug/
 
 **Data Functions:**
 - `getTagTree()` in api.ts:11 - Builds hierarchical tag structure from flat tag index
-- `getOutlineTree()` in api.ts:113 - Extracts headers from current page content with line numbers
+- `getOutlineTree()` in api.ts:113 - Extracts headers and builds hierarchical tree with folding support
 
 **Navigation:**
 - Tag/page nodes use `editor.navigate(pageName)` for page navigation
-- Header nodes use `editor.navigate(pageName@position)` for proper scrolling to header positions
+- Header leaf nodes use `editor.navigate(pageName@position)` for proper scrolling to header positions
+- Header parent nodes toggle expand/collapse when clicked (folding support)
 - View switcher buttons in panel header for seamless mode switching between tags and outline
 
 ## Asset Dependencies
