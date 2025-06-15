@@ -5,7 +5,8 @@
     type PageNodeData = { name: string; title: string; nodeType: "page"; };
     type FolderNodeData = { name: string; title: string; nodeType: "folder"; };
     type TagNodeData = { name: string; title: string; nodeType: "tag"; pageCount: number; };
-    type NodeData = FolderNodeData | TagNodeData | PageNodeData;
+    type HeaderNodeData = { name: string; title: string; nodeType: "header"; level: number; pos: number; };
+    type NodeData = FolderNodeData | TagNodeData | PageNodeData | HeaderNodeData;
     export type TreeNode = { data: NodeData; nodes: TreeNode[]; };
 
     export async function getTagTree(config: TagTreeViewConfig): Promise<{ nodes: TreeNode[] }> {
@@ -107,4 +108,42 @@
       return {
         nodes: root.nodes,
       };
+    }
+
+    export async function getOutlineTree(): Promise<{ nodes: TreeNode[] }> {
+      try {
+        const pageText = await editor.getText();
+        const lines = pageText.split('\n');
+        const headers: TreeNode[] = [];
+        
+        let currentPos = 0;
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i];
+          const headerMatch = line.match(/^(#{1,6})\s+(.+)$/);
+          
+          if (headerMatch) {
+            const level = headerMatch[1].length;
+            const title = headerMatch[2].trim();
+            
+            headers.push({
+              data: {
+                name: `header-${i}`,
+                title: title,
+                nodeType: "header",
+                level: level,
+                pos: currentPos
+              } as HeaderNodeData,
+              nodes: []
+            });
+          }
+          
+          currentPos += line.length + 1; // +1 for newline
+        }
+        
+        return { nodes: headers };
+      } catch (error) {
+        console.error("Error getting outline:", error);
+        editor.flashNotification(`Error getting outline: ${error.message}`, "error");
+        return { nodes: [] };
+      }
     }

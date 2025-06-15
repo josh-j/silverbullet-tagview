@@ -10,6 +10,7 @@ export const PLUG_NAME = "treeview"; // Or rename to "tagtreeview"? Keep for com
 export const PLUG_DISPLAY_NAME = "Tag TreeView Plug"; // Updated display name
 
 const ENABLED_STATE_KEY = "enableTreeView"; // Keep key for enable/disable state
+const OUTLINE_ENABLED_STATE_KEY = "enableOutlineView"; // Key for outline view state
 
 // Positions remain the same
 const POSITIONS = ["rhs", "lhs", "bhs", "modal"] as const;
@@ -100,6 +101,14 @@ export async function isTreeViewEnabled() {
 
 export async function setTreeViewEnabled(value: boolean) {
   return await clientStore.set(ENABLED_STATE_KEY, value);
+}
+
+export async function isOutlineViewEnabled() {
+  return !!(await clientStore.get(OUTLINE_ENABLED_STATE_KEY));
+}
+
+export async function setOutlineViewEnabled(value: boolean) {
+  return await clientStore.set(OUTLINE_ENABLED_STATE_KEY, value);
 }
 
 export async function getCustomStyles() {

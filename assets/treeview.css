@@ -28,6 +28,11 @@ html {
 
     /* Icon Color */
     --treeview-icon-color: var(--text-muted); /* Color for chevron SVG */
+    
+    /* Header styles for outline view */
+    --treeview-header-color: var(--text-color);
+    --treeview-header-background-color: transparent;
+    --treeview-header-border-color: transparent;
 }
 
 .treeview-root {
@@ -238,4 +243,45 @@ body {
 .tree__label > span[data-current-page="true"]:hover {
     background-color: var(--treeview-current-page-background-color);
     filter: brightness(1.1);
+}
+
+/* Header specific styles for outline view */
+.tree__label > span[data-node-type="header"] {
+    background-color: var(--treeview-header-background-color);
+    border-color: var(--treeview-header-border-color);
+    color: var(--treeview-header-color);
+    font-weight: 600;
+    opacity: 0.95;
+}
+
+.tree__label > span[data-node-type="header"]:hover {
+    background-color: var(--hover-background-color, var(--subtle-background-color));
+    border-color: var(--ui-accent-color);
+}
+
+/* Add a hash icon for headers */
+.tree__label > span[data-node-type="header"]::before {
+    display: inline-block;
+    margin-right: 6px;
+    vertical-align: -0.1em;
+    width: 1em;
+    height: 1em;
+    line-height: 1;
+    background-color: currentColor;
+    content: "";
+    flex-shrink: 0;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-size: 100% 100%;
+    mask-size: 100% 100%;
+    /* Hash icon for headers */
+    -webkit-mask-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line><line x1="10" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="14" y2="21"></line></svg>');
+    mask-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line><line x1="10" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="14" y2="21"></line></svg>');
+}
+
+/* Style for the outline title */
+.outline-title {
+    font-weight: 600;
+    margin-right: 8px;
+    color: var(--text-color);
 }

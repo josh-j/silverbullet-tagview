@@ -1,12 +1,14 @@
 import { asset, editor, system } from "@silverbulletmd/silverbullet/syscalls";
-import { getTagTree } from "./api.ts"; // Using getTagTree for your plug
+import { getTagTree, getOutlineTree } from "./api.ts"; // Using getTagTree for your plug
 import {
   getCustomStyles,
   isTreeViewEnabled,
+  isOutlineViewEnabled,
   PLUG_DISPLAY_NAME,
   PLUG_NAME,
   Position,
   setTreeViewEnabled,
+  setOutlineViewEnabled,
   TagTreeViewConfig, // Assuming you still use TagTreeViewConfig
 } from "./config.ts";
 import { getPlugConfig } from "./config.ts";
@@ -41,6 +43,35 @@ export async function showTreeIfEnabled() {
     }
   } catch (err) {
     console.error(`${PLUG_DISPLAY_NAME}: showTreeIfEnabled failed`, err);
+  }
+}
+
+export async function toggleOutline() {
+  const currentValue = await isOutlineViewEnabled();
+  if (!currentValue) {
+    await showOutline();
+  } else {
+    await hideOutline();
+  }
+}
+
+export async function hideOutline() {
+  if (currentPosition) {
+    await editor.hidePanel(currentPosition);
+    currentPosition = undefined;
+    await setOutlineViewEnabled(false);
+  }
+}
+
+export async function showOutlineIfEnabled() {
+  try {
+    const env = await system.getEnv();
+    if (env === "server") { return; }
+    if (await isOutlineViewEnabled()) {
+      return await showOutline();
+    }
+  } catch (err) {
+    console.error(`${PLUG_DISPLAY_NAME}: showOutlineIfEnabled failed`, err);
   }
 }
 
@@ -159,5 +190,111 @@ export async function showTree() {
       console.error("Error loading assets or showing tree view:", error);
       editor.flashNotification(`Error loading tree view: ${error.message}`, "error");
       await hideTree();
+  }
+}
+
+export async function showOutline() {
+  const config: TagTreeViewConfig = await getPlugConfig();
+
+  if (currentPosition && config.position !== currentPosition) {
+    await hideOutline();
+  }
+
+  try {
+      const [
+        // CSS and JS
+        sortableTreeCss,
+        sortableTreeJs,
+        plugCss,
+        plugJs,
+        // Header Icons
+        iconHeaderCollapse,
+        iconHeaderExpand,
+        iconNavigation2,
+        iconRefresh,
+        iconXCircle,
+        // Node Icons
+        nodeIconCollapsedSvg,
+        nodeIconOpenSvg,
+        // Data
+        currentPage
+      ] = await Promise.all([
+        // Assets
+        asset.readAsset(PLUG_NAME, "assets/sortable-tree/sortable-tree.css"),
+        asset.readAsset(PLUG_NAME, "assets/sortable-tree/sortable-tree.js"),
+        asset.readAsset(PLUG_NAME, "assets/treeview.css"),
+        asset.readAsset(PLUG_NAME, "assets/treeview.js"),
+        // Header Icons
+        asset.readAsset(PLUG_NAME, "assets/icons/folder-minus.svg"),
+        asset.readAsset(PLUG_NAME, "assets/icons/folder-plus.svg"),
+        asset.readAsset(PLUG_NAME, "assets/icons/navigation-2.svg"),
+        asset.readAsset(PLUG_NAME, "assets/icons/refresh-cw.svg"),
+        asset.readAsset(PLUG_NAME, "assets/icons/x-circle.svg"),
+        // Node Icons
+        asset.readAsset(PLUG_NAME, "assets/icons/chevron-right.svg"),
+        asset.readAsset(PLUG_NAME, "assets/icons/chevron-down.svg"),
+        // Data
+        editor.getCurrentPage(),
+      ]);
+
+      const { nodes } = await getOutlineTree();
+      const customStyles = await getCustomStyles();
+
+      const outlineViewJsConfig = {
+        nodes,
+        currentPage,
+        treeElementId: "outline-tree",
+        dragAndDrop: { enabled: false },
+        nodeIcons: {
+            collapsed: nodeIconCollapsedSvg,
+            open: nodeIconOpenSvg
+        },
+        viewType: "outline"
+      };
+
+      await editor.showPanel(
+        config.position,
+        config.size,
+        `
+          <link rel="stylesheet" href="/.client/main.css" />
+          <style>
+            ${sortableTreeCss}
+            ${plugCss}
+            ${customStyles ?? ""}
+          </style>
+          <div class="treeview-root">
+            <div class="treeview-header">
+              <div class="treeview-actions">
+                <div class="treeview-actions-left">
+                  <span class="outline-title">Outline</span>
+                  <button type="button" data-treeview-action="expand-all" title="Expand all">${iconHeaderExpand}</button>
+                  <button type="button" data-treeview-action="collapse-all" title="Collapse all">${iconHeaderCollapse}</button>
+                  <button type="button" data-treeview-action="refresh" title="Refresh outline">${iconRefresh}</button>
+                </div>
+                <div class="treeview-actions-right">
+                  <button type="button" data-treeview-action="close-panel" title="Close outline">${iconXCircle}</button>
+                </div>
+              </div>
+            </div>
+            <div id="${outlineViewJsConfig.treeElementId}"></div>
+          </div>`,
+        `
+          ${sortableTreeJs}
+          ${plugJs}
+          if (typeof initializeTreeViewPanel === 'function') {
+            initializeTreeViewPanel(${JSON.stringify(outlineViewJsConfig)});
+          } else {
+            console.error("Error: initializeTreeViewPanel is not defined!");
+          }
+        `,
+      );
+
+      await setOutlineViewEnabled(true);
+      currentPosition = config.position;
+
+  } catch (error) {
+      console.error("Error loading assets or showing outline view:", error);
+      editor.flashNotification(`Error loading outline view: ${error.message}`, "error");
+      await hideOutline();
   }
 }
