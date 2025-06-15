@@ -55,9 +55,9 @@ deno task build && cp *.plug.js /path/to/space/_plug/
 ### Outline View
 1. **Page Content**: Uses `editor.getText()` to get current page markdown content
 2. **Header Parsing**: Regex matches headers (#{1,6}) and extracts level, title, and line number
-3. **Header Navigation**: Click handler uses `editor.moveCursorToLine(lineNumber)` to jump to headers
-4. **Visual Hierarchy**: CSS styling with font weight, size, and left border based on header level
-5. **Level-specific Styling**: H1-H6 headers have distinct visual appearance (weight, size, opacity, italics)
+3. **Header Navigation**: Click handler uses `editor.navigate(pageName@position)` for proper scrolling to headers
+4. **Visual Hierarchy**: Bullet-based styling with distinct symbols for each header level
+5. **Level-specific Bullets**: H1 (●), H2 (○), H3 (▪), H4 (▫), H5 (‣), H6 (‧) with progressive indentation
 
 ## Key Functions
 
@@ -73,8 +73,8 @@ deno task build && cp *.plug.js /path/to/space/_plug/
 
 **Navigation:**
 - Tag/page nodes use `editor.navigate(pageName)` for page navigation
-- Header nodes use `editor.moveCursorToLine(lineNumber)` for precise positioning
-- View switcher buttons in panel header for seamless mode switching
+- Header nodes use `editor.navigate(pageName@position)` for proper scrolling to header positions
+- View switcher buttons in panel header for seamless mode switching between tags and outline
 
 ## Asset Dependencies
 

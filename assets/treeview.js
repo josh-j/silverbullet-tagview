@@ -96,9 +96,10 @@ function createTagTreeView(config) {
            syscall("editor.flashNotification", `Error navigating: ${e.message}`, "error");
         }
       } else if (nodeType === 'header') {
-        console.log("Panel: Header node clicked, navigating to line:", node.data.pos);
+        console.log("Panel: Header node clicked, navigating to position:", node.data.pos);
         try {
-          await syscall("editor.moveCursorToLine", node.data.pos);
+          // Use the same navigation approach as the Lua toc widget
+          await syscall("editor.navigate", `${panelCurrentPage}@${node.data.pos}`);
         } catch (e) {
            console.error("Panel: Error navigating to header:", e);
            syscall("editor.flashNotification", `Error navigating to header: ${e.message}`, "error");
@@ -225,7 +226,7 @@ function initializeTreeViewPanel(config) {
   }
 
   // Define the actions handled by buttons
-  const handledActions = ["refresh", "close-panel", "collapse-all", "expand-all", "reveal-current-page"];
+  const handledActions = ["refresh", "close-panel", "collapse-all", "expand-all", "reveal-current-page", "switch-tags", "switch-outline"];
   // Add click listeners to all action buttons
   document.querySelectorAll("[data-treeview-action]").forEach((el) => {
     const action = el.dataset["treeviewAction"];

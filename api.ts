@@ -113,8 +113,11 @@
     export async function getOutlineTree(): Promise<{ nodes: TreeNode[] }> {
       try {
         const pageText = await editor.getText();
-        const lines = pageText.split('\n');
         const headers: TreeNode[] = [];
+        
+        // Find headers with their character positions
+        let currentPos = 0;
+        const lines = pageText.split('\n');
         
         for (let i = 0; i < lines.length; i++) {
           const line = lines[i];
@@ -130,11 +133,13 @@
                 title: title,
                 nodeType: "header",
                 level: level,
-                pos: i + 1 // Use line number (1-based)
+                pos: currentPos // Use character position like Lua toc
               } as HeaderNodeData,
               nodes: []
             });
           }
+          
+          currentPos += line.length + 1; // +1 for newline
         }
         
         return { nodes: headers };
