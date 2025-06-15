@@ -6,10 +6,10 @@ import {
 import { z, ZodError } from "zod";
 
 // Keep PLUG_NAME and PLUG_DISPLAY_NAME (maybe update display name)
-export const PLUG_NAME = "treeview"; // Or rename to "tagtreeview"? Keep for compatibility for now.
-export const PLUG_DISPLAY_NAME = "Tag TreeView Plug"; // Updated display name
+export const PLUG_NAME = "tagview";
+export const PLUG_DISPLAY_NAME = "Tag View";
 
-const ENABLED_STATE_KEY = "enableTreeView"; // Keep key for enable/disable state
+const ENABLED_STATE_KEY = "enableTagView";
 
 // Positions remain the same
 const POSITIONS = ["rhs", "lhs", "bhs", "modal"] as const;
@@ -22,7 +22,7 @@ export const exclusionRuleByTagsSchema = z.object({ ... });
 export const exclusionRuleByFunctionSchema = z.object({ ... });
 */
 
-const tagTreeViewConfigSchema = z.object({
+const tagViewConfigSchema = z.object({
   /**
    * Where to position the tree view in the UI.
    */
@@ -52,7 +52,7 @@ const tagTreeViewConfigSchema = z.object({
 });
 
 // Update Type Alias
-export type TagTreeViewConfig = z.infer<typeof tagTreeViewConfigSchema>;
+export type TagViewConfig = z.infer<typeof tagViewConfigSchema>;
 
 // Keep showConfigErrorNotification function (adapting message slightly if needed)
 let configErrorShown = false;
@@ -77,12 +77,12 @@ async function showConfigErrorNotification(error: unknown) {
 
 
 // Update getPlugConfig to use the new schema and provide defaults
-export async function getPlugConfig(): Promise<TagTreeViewConfig> {
-  const userConfig = await system.getSpaceConfig("treeview", {}); // Read from 'treeview' key for now
+export async function getPlugConfig(): Promise<TagViewConfig> {
+  const userConfig = await system.getSpaceConfig("tagview", {});
 
   try {
     // Use the new schema
-    return tagTreeViewConfigSchema.parse(userConfig || {});
+    return tagViewConfigSchema.parse(userConfig || {});
   } catch (_err) {
     if (!configErrorShown) {
       showConfigErrorNotification(_err);
@@ -94,11 +94,11 @@ export async function getPlugConfig(): Promise<TagTreeViewConfig> {
 }
 
 // Keep isTreeViewEnabled, setTreeViewEnabled, getCustomStyles as they are general UI state/options
-export async function isTreeViewEnabled() {
+export async function isTagViewEnabled() {
   return !!(await clientStore.get(ENABLED_STATE_KEY));
 }
 
-export async function setTreeViewEnabled(value: boolean) {
+export async function setTagViewEnabled(value: boolean) {
   return await clientStore.set(ENABLED_STATE_KEY, value);
 }
 
