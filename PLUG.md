@@ -1,7 +1,7 @@
 ---
 name: Library/josh-j/silverbullet-tagview/PLUG
 tags: meta/library
-version: 0.19.2
+version: 0.19.3
 files:
   - treeview.plug.js
 ---
@@ -19,10 +19,25 @@ A unified navigation panel for SilverBullet v2 with two view modes:
 |---------|-------------|-------------|
 | `Tag Tree: Toggle` | `Ctrl/Cmd-Alt-B` | Show/hide the panel in Tag Tree mode |
 | `Outline: Toggle` | `Ctrl/Cmd-Alt-O` | Show/hide the panel in Outline mode |
+| `Tag Tree: Rename Tag` | — | Rename a tag everywhere it's used |
 | `Tag Tree: Version` | — | Show the installed plug version |
 
 Within the panel, use the view-switcher buttons in the header to switch between
-Tags and Outline modes.
+Tags and Outline modes, and the ✎ button (Tags view) to rename a tag.
+
+## Renaming tags
+
+`Tag Tree: Rename Tag` (or the ✎ button in the panel header) renames a tag
+across your whole space:
+
+1. Pick the tag to rename from the list.
+2. Enter the new name.
+3. Confirm the change (it shows how many files are affected).
+
+It rewrites both inline `#hashtags` and frontmatter `tags:` entries, and renames
+**hierarchical children** too — renaming `econ` → `economics` turns `#econ` into
+`#economics` *and* `#econ/us` into `#economics/us`, while leaving unrelated tags
+like `#economy` untouched.
 
 ## Configuration (optional)
 
@@ -49,6 +64,9 @@ doesn't seem to apply.
 
 ## Changelog
 
+- **0.19.3** — Added `Tag Tree: Rename Tag` (command + panel ✎ button): renames a
+  tag and its hierarchical children across the whole space, in both inline
+  hashtags and frontmatter `tags:`.
 - **0.19.2** — Added the `Tag Tree: Version` command.
 - **0.19.1** — Migrated to SilverBullet v2 (Node/npm + `plug-compile`). Performance
   and architecture work: dropped Zod (~half the bundle), cached panel assets and

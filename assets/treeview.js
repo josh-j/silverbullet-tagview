@@ -215,6 +215,11 @@ function initializeTreeViewPanel(config) {
         syscall("system.invokeFunction", "treeview.switchView", "outline");
         return true;
       }
+      case "rename-tag": {
+        // No args -> the plug runs the interactive tag picker + prompt.
+        syscall("system.invokeFunction", "treeview.renameTag");
+        return true;
+      }
       case "reveal-current-page": {
         // Find the node element based on the title attribute matching the current page
         const pageNodeElement = Array.from(document.querySelectorAll('sortable-tree-node .tree__label > span[data-node-type="page"]'))
@@ -248,7 +253,7 @@ function initializeTreeViewPanel(config) {
   }
 
   // Define the actions handled by buttons
-  const handledActions = ["refresh", "close-panel", "collapse-all", "expand-all", "reveal-current-page", "switch-tags", "switch-outline"];
+  const handledActions = ["refresh", "close-panel", "collapse-all", "expand-all", "reveal-current-page", "rename-tag", "switch-tags", "switch-outline"];
   // Add click listeners to all action buttons
   document.querySelectorAll("[data-treeview-action]").forEach((el) => {
     const action = el.dataset["treeviewAction"];

@@ -1,5 +1,12 @@
-import { asset, editor } from "@silverbulletmd/silverbullet/syscalls";
+import {
+  asset,
+  editor,
+  index,
+  mq,
+  space,
+} from "@silverbulletmd/silverbullet/syscalls";
 import { getTagTree, getOutlineTree } from "./api.ts";
+import { matchTag, renameTagInText } from "./rename.ts";
 import {
   getCustomStyles,
   getLastView,
@@ -32,6 +39,7 @@ interface PanelAssets {
   iconNavigation2: string;
   iconRefresh: string;
   iconXCircle: string;
+  iconEdit: string;
   nodeIconCollapsedSvg: string;
   nodeIconOpenSvg: string;
 }
@@ -87,6 +95,7 @@ async function loadAssets(): Promise<PanelAssets> {
     iconNavigation2,
     iconRefresh,
     iconXCircle,
+    iconEdit,
     nodeIconCollapsedSvg,
     nodeIconOpenSvg,
   ] = await Promise.all([
@@ -99,13 +108,14 @@ async function loadAssets(): Promise<PanelAssets> {
     asset.readAsset(PLUG_NAME, "assets/icons/navigation-2.svg"),
     asset.readAsset(PLUG_NAME, "assets/icons/refresh-cw.svg"),
     asset.readAsset(PLUG_NAME, "assets/icons/x-circle.svg"),
+    asset.readAsset(PLUG_NAME, "assets/icons/edit-2.svg"),
     asset.readAsset(PLUG_NAME, "assets/icons/chevron-right.svg"),
     asset.readAsset(PLUG_NAME, "assets/icons/chevron-down.svg"),
   ]);
   cachedAssets = {
     sortableTreeCss, sortableTreeJs, plugCss, plugJs,
     iconHeaderCollapse, iconHeaderExpand, iconNavigation2, iconRefresh,
-    iconXCircle, nodeIconCollapsedSvg, nodeIconOpenSvg,
+    iconXCircle, iconEdit, nodeIconCollapsedSvg, nodeIconOpenSvg,
   };
   return cachedAssets;
 }
@@ -197,7 +207,7 @@ export async function showUnifiedPanel(viewType: ViewType = "tags", force = fals
       const {
         sortableTreeCss, sortableTreeJs, plugCss, plugJs,
         iconHeaderCollapse, iconHeaderExpand, iconNavigation2, iconRefresh,
-        iconXCircle, nodeIconCollapsedSvg, nodeIconOpenSvg,
+        iconXCircle, iconEdit, nodeIconCollapsedSvg, nodeIconOpenSvg,
       } = await loadAssets();
 
       // Fetch data based on view type. Tags reuse the cached tree across
@@ -258,6 +268,7 @@ export async function showUnifiedPanel(viewType: ViewType = "tags", force = fals
                   <button type="button" data-treeview-action="expand-all" title="Expand all">${iconHeaderExpand}</button>
                   <button type="button" data-treeview-action="collapse-all" title="Collapse all">${iconHeaderCollapse}</button>
                   ${viewType === "tags" ? `<button type="button" data-treeview-action="reveal-current-page" title="Reveal current page">${iconNavigation2}</button>` : ""}
+                  ${viewType === "tags" ? `<button type="button" data-treeview-action="rename-tag" title="Rename a tag">${iconEdit}</button>` : ""}
                   <button type="button" data-treeview-action="refresh" title="Refresh view">${iconRefresh}</button>
                 </div>
                 <div class="treeview-actions-right">
@@ -299,4 +310,119 @@ export async function showTree() {
 // Command: "Tag Tree: Version" — report the installed plug version.
 export async function showVersion() {
   await editor.flashNotification(`${PLUG_DISPLAY_NAME} v${PLUG_VERSION}`);
+}
+
+interface TagEntry {
+  name: string;
+  page: string;
+}
+
+// Command: "Tag Tree: Rename Tag" (and the panel rename button). Renames a tag
+// and all hierarchical children across every page that uses them, in both
+// inline #hashtags and frontmatter `tags:` lists. Callable with no argument
+// (interactive picker) or with a specific oldTag.
+export async function renameTag(oldTag?: string) {
+  let tagObjs: TagEntry[] = [];
+  try {
+    tagObjs = await index.queryLuaObjects<TagEntry>("tag", {});
+  } catch (e) {
+    console.error("renameTag: failed to read tag index", e);
+    await editor.flashNotification("Could not read tags from the index.", "error");
+    return;
+  }
+
+  // 1. Pick the tag to rename (when not supplied by the caller).
+  if (!oldTag) {
+    const names = [...new Set(tagObjs.map((t) => t?.name).filter(Boolean))].sort(
+      (a, b) => a.localeCompare(b),
+    );
+    if (names.length === 0) {
+      await editor.flashNotification("No tags found to rename.", "info");
+      return;
+    }
+    const choice = await editor.filterBox(
+      "Rename tag",
+      names.map((n) => ({ name: n })),
+      "Pick the tag to rename — its child tags are renamed too",
+    );
+    if (!choice) return;
+    oldTag = choice.name;
+  }
+
+  // 2. New name.
+  const entered = await editor.prompt(`Rename #${oldTag} to:`, oldTag);
+  const newTag = entered?.trim();
+  if (!newTag || newTag === oldTag) return;
+
+  // 3. Find affected pages (and count child tags) using the rename rule.
+  const affectedPages = new Set<string>();
+  const childTags = new Set<string>();
+  for (const t of tagObjs) {
+    if (!t || typeof t.name !== "string" || typeof t.page !== "string") continue;
+    if (matchTag(t.name, oldTag, newTag) !== null) {
+      affectedPages.add(t.page);
+      if (t.name !== oldTag) childTags.add(t.name);
+    }
+  }
+  if (affectedPages.size === 0) {
+    await editor.flashNotification(`No pages use #${oldTag}.`, "info");
+    return;
+  }
+
+  // 4. Confirm.
+  const fileWord = affectedPages.size === 1 ? "file" : "files";
+  const childNote = childTags.size > 0
+    ? ` (incl. ${childTags.size} child tag${childTags.size === 1 ? "" : "s"})`
+    : "";
+  const ok = await editor.confirm(
+    `Rename #${oldTag} → #${newTag} across ${affectedPages.size} ${fileWord}${childNote}?`,
+  );
+  if (!ok) return;
+
+  // 5. Rewrite each page. The open page is edited via the editor buffer to
+  // avoid clobbering unsaved edits / disk-vs-buffer conflicts.
+  const currentPage = await editor.getCurrentPage();
+  let updated = 0;
+  const failures: string[] = [];
+  for (const page of affectedPages) {
+    try {
+      if (page === currentPage) {
+        const text = await editor.getText();
+        const newText = await renameTagInText(text, oldTag, newTag);
+        if (newText !== text) {
+          await editor.setText(newText);
+          updated++;
+        }
+      } else {
+        const text = await space.readPage(page);
+        const newText = await renameTagInText(text, oldTag, newTag);
+        if (newText !== text) {
+          await space.writePage(page, newText);
+          updated++;
+        }
+      }
+    } catch (e) {
+      console.error(`renameTag: failed to rewrite ${page}`, e);
+      failures.push(page);
+    }
+  }
+
+  // 6. Wait for reindex, invalidate the tag cache, refresh the panel.
+  try {
+    await mq.awaitEmptyQueue("indexQueue");
+  } catch {
+    // best-effort; the panel refresh below will pick up whatever is indexed
+  }
+  tagTreeDirty = true;
+  if (await isTreeViewEnabled()) {
+    await showUnifiedPanel(await getLastView(), true);
+  }
+
+  let msg = `Renamed #${oldTag} → #${newTag} in ${updated} ${
+    updated === 1 ? "file" : "files"
+  }`;
+  if (failures.length > 0) {
+    msg += `; ${failures.length} failed (see console)`;
+  }
+  await editor.flashNotification(msg, failures.length > 0 ? "error" : "info");
 }

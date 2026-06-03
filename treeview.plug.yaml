@@ -1,5 +1,5 @@
 name: treeview
-version: 0.19.2 # SilverBullet v2 compatible
+version: 0.19.3 # SilverBullet v2 compatible
 description: Displays a hierarchical tree view of tags and associated pages.
 assets:
   - "assets/**/*.*"
@@ -51,4 +51,10 @@ functions:
     path: "./treeview.ts:showVersion"
     command:
       name: "Tag Tree: Version"
+
+  # User facing command - rename a tag (and its children) across the space
+  renameTag:
+    path: "./treeview.ts:renameTag"
+    command:
+      name: "Tag Tree: Rename Tag"
 

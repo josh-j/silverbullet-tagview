@@ -32,7 +32,19 @@ updates, use **`Library: Update`**.
 |---------|-------------|-------------|
 | `Tag Tree: Toggle` | `Ctrl/Cmd-Alt-B` | Show/hide the panel in Tag Tree mode |
 | `Outline: Toggle` | `Ctrl/Cmd-Alt-O` | Show/hide the panel in Outline mode |
+| `Tag Tree: Rename Tag` | — | Rename a tag (and its children) everywhere it's used |
 | `Tag Tree: Version` | — | Show the installed plug version |
+
+## Renaming tags
+
+`Tag Tree: Rename Tag` — or the ✎ button in the panel header (Tags view) — renames
+a tag across your whole space. Pick the tag, enter the new name, and confirm
+(it reports how many files are affected). It rewrites both inline `#hashtags` and
+frontmatter `tags:` entries, and renames **hierarchical children** too: renaming
+`econ` → `economics` turns `#econ` into `#economics` *and* `#econ/us` into
+`#economics/us`, while leaving unrelated tags such as `#economy` untouched. The
+currently open page is edited in place; other pages are rewritten on disk and the
+index is refreshed automatically.
 
 ## Configuration
 
