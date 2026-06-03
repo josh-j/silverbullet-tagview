@@ -37,6 +37,13 @@ interface PanelAssets {
 
 let cachedAssets: PanelAssets | undefined;
 
+// Signature of what is currently rendered in the panel. v2 has no plug->panel
+// push channel and showPanel always wipes the iframe body, so the only way to
+// avoid a full rebuild is to not call showPanel when the result would be
+// identical. Event-driven refreshes (navigation, debounced save, deletes) skip
+// the rebuild when this matches; user-initiated actions force a render.
+let lastRenderSignature: string | undefined;
+
 async function loadAssets(): Promise<PanelAssets> {
   if (cachedAssets) return cachedAssets;
   const [
@@ -74,7 +81,7 @@ async function loadAssets(): Promise<PanelAssets> {
 
 export async function toggleTree() {
   if (!(await isTreeViewEnabled())) {
-    await showUnifiedPanel("tags");
+    await showUnifiedPanel("tags", true);
   } else {
     await hideTree();
   }
@@ -82,7 +89,7 @@ export async function toggleTree() {
 
 export async function toggleOutline() {
   if (!(await isTreeViewEnabled())) {
-    await showUnifiedPanel("outline");
+    await showUnifiedPanel("outline", true);
   } else {
     await hideTree();
   }
@@ -90,7 +97,8 @@ export async function toggleOutline() {
 
 export async function switchView(viewType: ViewType) {
   if (await isTreeViewEnabled()) {
-    await showUnifiedPanel(viewType);
+    // User-initiated (view switcher / refresh button) -> always render.
+    await showUnifiedPanel(viewType, true);
   }
 }
 
@@ -98,6 +106,7 @@ export async function hideTree() {
   if (currentPosition) {
     await editor.hidePanel(currentPosition);
     currentPosition = undefined;
+    lastRenderSignature = undefined;
     await setTreeViewEnabled(false);
   }
 }
@@ -135,7 +144,7 @@ export function refreshOnSave() {
 /**
  * Shows a unified panel that can display either tag tree or outline view
  */
-export async function showUnifiedPanel(viewType: ViewType = "tags") {
+export async function showUnifiedPanel(viewType: ViewType = "tags", force = false) {
   await setLastView(viewType);
   const config: TagTreeViewConfig = await getPlugConfig();
 
@@ -156,6 +165,22 @@ export async function showUnifiedPanel(viewType: ViewType = "tags") {
         editor.getCurrentPage(),
         getCustomStyles(),
       ]);
+
+      // Skip the (DOM-wiping) showPanel call when an event-driven refresh would
+      // produce an identical panel — e.g. saving a page whose tags/headers did
+      // not change. Everything that affects the rendered output goes into the
+      // signature; user-initiated actions pass force=true to always render.
+      const signature = JSON.stringify({
+        viewType,
+        position: config.position,
+        currentPage,
+        customStyles: customStyles ?? "",
+        nodes,
+      });
+      if (!force && currentPosition === config.position &&
+          signature === lastRenderSignature) {
+        return;
+      }
 
       // Prepare config for the frontend JS, including node icon SVG content
       const treeViewJsConfig = {
@@ -218,6 +243,7 @@ export async function showUnifiedPanel(viewType: ViewType = "tags") {
 
       await setTreeViewEnabled(true);
       currentPosition = config.position;
+      lastRenderSignature = signature;
 
   } catch (error: any) {
       console.error("Error loading assets or showing tree view:", error);
@@ -226,7 +252,7 @@ export async function showUnifiedPanel(viewType: ViewType = "tags") {
   }
 }
 
-// Compatibility function referenced by the manifest (`show`).
+// Compatibility function referenced by the manifest (`show`). Explicit show.
 export async function showTree() {
-  return await showUnifiedPanel("tags");
+  return await showUnifiedPanel("tags", true);
 }
