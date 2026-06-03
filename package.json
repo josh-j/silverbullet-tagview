@@ -10,8 +10,5 @@
   },
   "devDependencies": {
     "@silverbulletmd/silverbullet": "^2.8.1"
-  },
-  "dependencies": {
-    "zod": "^3.23.8"
   }
 }

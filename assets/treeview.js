@@ -48,6 +48,21 @@
 // ID used for persisting the collapse/expand state in sessionStorage
 const TREE_STATE_ID = "treeview";
 
+// Set to true to surface verbose panel logging in the browser console.
+const DEBUG = false;
+const debug = (...args) => { if (DEBUG) console.log(...args); };
+
+// Escape a string for safe interpolation into HTML text/attributes. Page and
+// tag names can legitimately contain &, <, >, " which would otherwise break
+// the rendered markup.
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
+}
+
 // Store current page globally within the panel's script scope
 let panelCurrentPage = "";
 
@@ -78,7 +93,7 @@ function createTagTreeView(config) {
     },
 
     onChange: async () => {
-       console.log("Tree structure changed (if D&D were enabled)");
+       debug("Tree structure changed (if D&D were enabled)");
     },
 
     onClick: async (_event, node) => {
@@ -86,7 +101,7 @@ function createTagTreeView(config) {
       const nodeName = node.data.name;
 
       if (nodeType === 'page') {
-        console.log("Panel: Page node clicked, navigating to:", nodeName);
+        debug("Panel: Page node clicked, navigating to:", nodeName);
         try {
           if (nodeName !== panelCurrentPage) {
             await syscall("editor.navigate", nodeName);
@@ -96,7 +111,7 @@ function createTagTreeView(config) {
            syscall("editor.flashNotification", `Error navigating: ${e.message}`, "error");
         }
       } else if (nodeType === 'header') {
-        console.log("Panel: Header text clicked, navigating to position:", node.data.pos);
+        debug("Panel: Header text clicked, navigating to position:", node.data.pos);
         try {
           // Always navigate when clicking on header text
           // If the header has children and is collapsed, expand it first
@@ -113,7 +128,7 @@ function createTagTreeView(config) {
            syscall("editor.flashNotification", `Error navigating to header: ${e.message}`, "error");
         }
       } else if (nodeType === 'folder' || nodeType === 'tag') {
-        console.log(`Panel: ${nodeType} node label clicked, toggling:`, nodeName);
+        debug(`Panel: ${nodeType} node label clicked, toggling:`, nodeName);
         node.toggle();
       } else {
          console.warn("Panel: Clicked node with unknown type:", node.data);
@@ -129,23 +144,22 @@ function createTagTreeView(config) {
      */
     renderLabel: (data) => {
         // Always use title for folders and tags
-        const title = data.title || data.name;
-        let content = title; // Use title directly
+        const content = escapeHtml(data.title || data.name);
 
         const isCurrentPage = (data.nodeType === 'page' && data.name === panelCurrentPage);
-        
+
         // Add header level as data attribute for CSS targeting
         let additionalAttributes = '';
         if (data.nodeType === 'header' && data.level) {
-          additionalAttributes = `data-header-level="${data.level}"`;
+          additionalAttributes = `data-header-level="${escapeHtml(data.level)}"`;
         }
 
         return `
           <span
-            data-node-type="${data.nodeType}"
+            data-node-type="${escapeHtml(data.nodeType)}"
             data-current-page="${isCurrentPage}"
             ${additionalAttributes}
-            title="${data.name}"
+            title="${escapeHtml(data.name)}"
           >
              ${content}
           </span>`;
@@ -249,5 +263,5 @@ function initializeTreeViewPanel(config) {
     }
   });
 
-  console.log("TreeView panel initialized. Current page:", panelCurrentPage);
+  debug("TreeView panel initialized. Current page:", panelCurrentPage);
 }

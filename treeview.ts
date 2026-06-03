@@ -1,24 +1,79 @@
 import { asset, editor } from "@silverbulletmd/silverbullet/syscalls";
-import { getTagTree, getOutlineTree } from "./api.ts"; // Using getTagTree for your plug
+import { getTagTree, getOutlineTree } from "./api.ts";
 import {
   getCustomStyles,
+  getLastView,
   isTreeViewEnabled,
   PLUG_DISPLAY_NAME,
   PLUG_NAME,
   Position,
+  setLastView,
   setTreeViewEnabled,
-  TagTreeViewConfig, // Assuming you still use TagTreeViewConfig
+  TagTreeViewConfig,
+  ViewType,
 } from "./config.ts";
 import { getPlugConfig } from "./config.ts";
 
 let currentPosition: Position | undefined;
-let currentViewType: "tags" | "outline" = "tags";
 
-// --- toggleTree, hideTree, showTreeIfEnabled remain the same ---
+/**
+ * Static panel assets (CSS/JS/SVG icons) never change at runtime, so they are
+ * read from the bundle once and cached. Without this, every page load/save
+ * re-read all 11 assets before re-rendering the panel.
+ */
+interface PanelAssets {
+  sortableTreeCss: string;
+  sortableTreeJs: string;
+  plugCss: string;
+  plugJs: string;
+  iconHeaderCollapse: string;
+  iconHeaderExpand: string;
+  iconNavigation2: string;
+  iconRefresh: string;
+  iconXCircle: string;
+  nodeIconCollapsedSvg: string;
+  nodeIconOpenSvg: string;
+}
+
+let cachedAssets: PanelAssets | undefined;
+
+async function loadAssets(): Promise<PanelAssets> {
+  if (cachedAssets) return cachedAssets;
+  const [
+    sortableTreeCss,
+    sortableTreeJs,
+    plugCss,
+    plugJs,
+    iconHeaderCollapse,
+    iconHeaderExpand,
+    iconNavigation2,
+    iconRefresh,
+    iconXCircle,
+    nodeIconCollapsedSvg,
+    nodeIconOpenSvg,
+  ] = await Promise.all([
+    asset.readAsset(PLUG_NAME, "assets/sortable-tree/sortable-tree.css"),
+    asset.readAsset(PLUG_NAME, "assets/sortable-tree/sortable-tree.js"),
+    asset.readAsset(PLUG_NAME, "assets/treeview.css"),
+    asset.readAsset(PLUG_NAME, "assets/treeview.js"),
+    asset.readAsset(PLUG_NAME, "assets/icons/folder-minus.svg"),
+    asset.readAsset(PLUG_NAME, "assets/icons/folder-plus.svg"),
+    asset.readAsset(PLUG_NAME, "assets/icons/navigation-2.svg"),
+    asset.readAsset(PLUG_NAME, "assets/icons/refresh-cw.svg"),
+    asset.readAsset(PLUG_NAME, "assets/icons/x-circle.svg"),
+    asset.readAsset(PLUG_NAME, "assets/icons/chevron-right.svg"),
+    asset.readAsset(PLUG_NAME, "assets/icons/chevron-down.svg"),
+  ]);
+  cachedAssets = {
+    sortableTreeCss, sortableTreeJs, plugCss, plugJs,
+    iconHeaderCollapse, iconHeaderExpand, iconNavigation2, iconRefresh,
+    iconXCircle, nodeIconCollapsedSvg, nodeIconOpenSvg,
+  };
+  return cachedAssets;
+}
 
 export async function toggleTree() {
-  const currentValue = await isTreeViewEnabled();
-  if (!currentValue) {
+  if (!(await isTreeViewEnabled())) {
     await showUnifiedPanel("tags");
   } else {
     await hideTree();
@@ -26,16 +81,14 @@ export async function toggleTree() {
 }
 
 export async function toggleOutline() {
-  const currentValue = await isTreeViewEnabled();
-  if (!currentValue) {
+  if (!(await isTreeViewEnabled())) {
     await showUnifiedPanel("outline");
   } else {
     await hideTree();
   }
 }
 
-export async function switchView(viewType: "tags" | "outline") {
-  currentViewType = viewType;
+export async function switchView(viewType: ViewType) {
   if (await isTreeViewEnabled()) {
     await showUnifiedPanel(viewType);
   }
@@ -54,7 +107,7 @@ export async function showTreeIfEnabled() {
     // In v2, plugs only ever run client-side (Web Worker sandbox), so there is
     // no server environment to guard against.
     if (await isTreeViewEnabled()) {
-      return await showUnifiedPanel(currentViewType);
+      return await showUnifiedPanel(await getLastView());
     }
   } catch (err) {
     console.error(`${PLUG_DISPLAY_NAME}: showTreeIfEnabled failed`, err);
@@ -65,56 +118,27 @@ export async function showTreeIfEnabled() {
 /**
  * Shows a unified panel that can display either tag tree or outline view
  */
-export async function showUnifiedPanel(viewType: "tags" | "outline" = "tags") {
-  currentViewType = viewType;
-  const config: TagTreeViewConfig = await getPlugConfig(); // Use your config type
+export async function showUnifiedPanel(viewType: ViewType = "tags") {
+  await setLastView(viewType);
+  const config: TagTreeViewConfig = await getPlugConfig();
 
   if (currentPosition && config.position !== currentPosition) {
     await hideTree();
   }
 
-  // Fetch necessary assets, loading the correct icons
   try {
-      const [
-        // CSS and JS
-        sortableTreeCss,
-        sortableTreeJs,
-        plugCss, // Should be treeview_css_final content
-        plugJs, // Should be treeview_js_final content
-        // Header Icons (Folder +/-)
-        iconHeaderCollapse, // Use folder-minus for Collapse All button
-        iconHeaderExpand,   // Use folder-plus for Expand All button
-        // Other Header Icons
-        iconNavigation2, // Icon for Reveal Current Page
-        iconRefresh, // Icon for Refresh
-        iconXCircle, // Icon for Close
-        // Node Icons (Chevrons - Content loaded as strings)
-        nodeIconCollapsedSvg, // chevron-right SVG content for nodes
-        nodeIconOpenSvg,      // chevron-down SVG content for nodes
-        // Data
-        currentPage
-      ] = await Promise.all([
-        // Assets
-        asset.readAsset(PLUG_NAME, "assets/sortable-tree/sortable-tree.css"),
-        asset.readAsset(PLUG_NAME, "assets/sortable-tree/sortable-tree.js"),
-        asset.readAsset(PLUG_NAME, "assets/treeview.css"),
-        asset.readAsset(PLUG_NAME, "assets/treeview.js"),
-        // Header Icons (Load folder icons)
-        asset.readAsset(PLUG_NAME, "assets/icons/folder-minus.svg"), // Load folder-minus
-        asset.readAsset(PLUG_NAME, "assets/icons/folder-plus.svg"),  // Load folder-plus
-        asset.readAsset(PLUG_NAME, "assets/icons/navigation-2.svg"),
-        asset.readAsset(PLUG_NAME, "assets/icons/refresh-cw.svg"),
-        asset.readAsset(PLUG_NAME, "assets/icons/x-circle.svg"),
-        // Node Icons (Load chevron SVG file *content*)
-        asset.readAsset(PLUG_NAME, "assets/icons/chevron-right.svg"), // Load chevron-right content
-        asset.readAsset(PLUG_NAME, "assets/icons/chevron-down.svg"),  // Load chevron-down content
-        // Data
-        editor.getCurrentPage(),
-      ]);
+      const {
+        sortableTreeCss, sortableTreeJs, plugCss, plugJs,
+        iconHeaderCollapse, iconHeaderExpand, iconNavigation2, iconRefresh,
+        iconXCircle, nodeIconCollapsedSvg, nodeIconOpenSvg,
+      } = await loadAssets();
 
       // Fetch data based on view type
-      const { nodes } = viewType === "tags" ? await getTagTree(config) : await getOutlineTree();
-      const customStyles = await getCustomStyles();
+      const [{ nodes }, currentPage, customStyles] = await Promise.all([
+        viewType === "tags" ? getTagTree(config) : getOutlineTree(),
+        editor.getCurrentPage(),
+        getCustomStyles(),
+      ]);
 
       // Prepare config for the frontend JS, including node icon SVG content
       const treeViewJsConfig = {
@@ -178,18 +202,14 @@ export async function showUnifiedPanel(viewType: "tags" | "outline" = "tags") {
       await setTreeViewEnabled(true);
       currentPosition = config.position;
 
-  } catch (error) {
+  } catch (error: any) {
       console.error("Error loading assets or showing tree view:", error);
       editor.flashNotification(`Error loading tree view: ${error.message}`, "error");
       await hideTree();
   }
 }
 
-// Compatibility functions for backward compatibility
+// Compatibility function referenced by the manifest (`show`).
 export async function showTree() {
   return await showUnifiedPanel("tags");
-}
-
-export async function showOutline() {
-  return await showUnifiedPanel("outline");
 }
