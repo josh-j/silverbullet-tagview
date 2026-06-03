@@ -1,5 +1,5 @@
 ---
-name: Library/josh-j/TagView
+name: Library/josh-j/silverbullet-tagview/PLUG
 tags: meta/library
 files:
   - treeview.plug.js
