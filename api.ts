@@ -1,5 +1,5 @@
     // --- Keep imports and type definitions the same ---
-    import { editor, system } from "@silverbulletmd/silverbullet/syscalls";
+    import { editor, index } from "@silverbulletmd/silverbullet/syscalls";
     import { PLUG_DISPLAY_NAME, TagTreeViewConfig } from "./config.ts";
     interface TagIndexEntry { name: string; page: string; [key: string]: any; }
     type PageNodeData = { name: string; title: string; nodeType: "page"; };
@@ -13,7 +13,7 @@
       // --- Data fetching and processing (tagPageMap, tagCounts, uniqueTags) remain the same ---
       let tagIndexEntries: TagIndexEntry[] = [];
       try {
-        tagIndexEntries = await system.invokeFunction("index.queryLuaObjects", "tag", {});
+        tagIndexEntries = await index.queryLuaObjects("tag", {});
       } catch (e) {
         console.error("Failed to fetch tags via index.queryLuaObjects('tag',...):", e);
         editor.flashNotification(`Error fetching tags: ${e.message}`, "error");

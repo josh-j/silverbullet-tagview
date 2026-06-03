@@ -1,4 +1,4 @@
-import { asset, editor, system } from "@silverbulletmd/silverbullet/syscalls";
+import { asset, editor } from "@silverbulletmd/silverbullet/syscalls";
 import { getTagTree, getOutlineTree } from "./api.ts"; // Using getTagTree for your plug
 import {
   getCustomStyles,
@@ -51,8 +51,8 @@ export async function hideTree() {
 
 export async function showTreeIfEnabled() {
   try {
-    const env = await system.getEnv();
-    if (env === "server") { return; }
+    // In v2, plugs only ever run client-side (Web Worker sandbox), so there is
+    // no server environment to guard against.
     if (await isTreeViewEnabled()) {
       return await showUnifiedPanel(currentViewType);
     }
@@ -136,7 +136,7 @@ export async function showUnifiedPanel(viewType: "tags" | "outline" = "tags") {
         config.size,
         // Panel HTML - Use FOLDER icons for expand/collapse buttons
         `
-          <link rel="stylesheet" href="/.client/main.css" />
+          <link rel="stylesheet" href=".client/components.css" />
           <style>
             ${sortableTreeCss}
             ${plugCss} /* CSS matching the desired appearance */

@@ -1,7 +1,7 @@
 import {
   clientStore,
+  config,
   editor,
-  system,
 } from "@silverbulletmd/silverbullet/syscalls";
 import { z, ZodError } from "zod";
 
@@ -71,7 +71,7 @@ async function showConfigErrorNotification(error: unknown) {
     errorMessage = [...formErrors, ...fieldErrorMessages].join("; ");
   }
   await editor.flashNotification(
-    `There was an error with your ${PLUG_DISPLAY_NAME} configuration. Check your SETTINGS file: ${errorMessage}`, // Updated plug name
+    `There was an error with your ${PLUG_DISPLAY_NAME} configuration. Check your CONFIG page: ${errorMessage}`, // Updated plug name
     "error",
   );
 }
@@ -79,7 +79,7 @@ async function showConfigErrorNotification(error: unknown) {
 
 // Update getPlugConfig to use the new schema and provide defaults
 export async function getPlugConfig(): Promise<TagTreeViewConfig> {
-  const userConfig = await system.getSpaceConfig("treeview", {}); // Read from 'treeview' key for now
+  const userConfig = await config.get("treeview", {}); // Read 'treeview' key from CONFIG
 
   try {
     // Use the new schema

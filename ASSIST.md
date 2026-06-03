@@ -19,35 +19,38 @@ The panel includes view switcher buttons to toggle between modes within the same
 
 ## Development Commands
 
+This plug targets **SilverBullet v2** and builds with Node/npm using the `plug-compile`
+bin from the `@silverbulletmd/silverbullet` npm package (the Deno toolchain from v1 is gone).
+
+**Install dependencies (first time):**
+```shell
+npm install
+```
+
 **Build the plug:**
 ```shell
-deno task build
+npm run build
 ```
 
 **Watch for changes and rebuild:**
 ```shell
-deno task watch
+npm run watch
 ```
 
-**Debug build with info:**
+**Debug build with per-function size info (unminified):**
 ```shell
-deno task debug
+npm run debug
 ```
 
-**Run tests:**
-```shell
-deno task test
-```
-
-**Build and install to SilverBullet space:**
-```shell
-deno task build && cp *.plug.js /path/to/space/_plug/
-```
+**Install to a SilverBullet v2 space:**
+In v2, plugs are distributed through a Library meta page rather than dropped into `_plug/`.
+Place the compiled `treeview.plug.js` next to a `Library/.../*.md` meta page that lists it
+under `files:`, then run the `Library: Install` / `Plugs: Reload` commands in SilverBullet.
 
 ## Core Data Flow
 
 ### Tag Tree View
-1. **Tag Index Query**: Uses `system.invokeFunction("index.queryLuaObjects", "tag", {})` to fetch all tag entries
+1. **Tag Index Query**: Uses `index.queryLuaObjects("tag", {})` to fetch all tag entries
 2. **Tree Building**: Processes tag paths (e.g., "project/frontend/react") into hierarchical structure
 3. **Node Types**: Creates folder nodes for intermediate paths, tag nodes for leaf tags, and page nodes for tagged pages
 4. **UI Rendering**: Displays tree with sortable-tree component, using folder icons for expand/collapse and chevron icons for nodes
