@@ -14,8 +14,12 @@ functions:
     events:
       - editor:init
       - editor:pageLoaded
-      - editor:pageSaved
       - file:deleted
+  # Debounced refresh on save (coalesces bursts of saves into one rebuild)
+  refreshOnSave:
+    path: "./treeview.ts:refreshOnSave"
+    events:
+      - editor:pageSaved
 
   # User facing command - Tag Tree
   toggle:

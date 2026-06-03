@@ -114,6 +114,23 @@ export async function showTreeIfEnabled() {
   }
 }
 
+// Refreshing on every editor:pageSaved means re-querying the whole tag index
+// (and rebuilding the tree) on each save. Coalesce bursts of saves into a
+// single refresh once editing settles. The timer lives in the (persistent)
+// plug worker scope, so it survives across event invocations.
+let saveRefreshTimer: ReturnType<typeof setTimeout> | undefined;
+const SAVE_REFRESH_DEBOUNCE_MS = 750;
+
+export function refreshOnSave() {
+  if (saveRefreshTimer !== undefined) {
+    clearTimeout(saveRefreshTimer);
+  }
+  saveRefreshTimer = setTimeout(() => {
+    saveRefreshTimer = undefined;
+    void showTreeIfEnabled();
+  }, SAVE_REFRESH_DEBOUNCE_MS);
+}
+
 
 /**
  * Shows a unified panel that can display either tag tree or outline view
