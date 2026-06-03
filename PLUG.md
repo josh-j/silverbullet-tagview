@@ -1,6 +1,7 @@
 ---
 name: Library/josh-j/silverbullet-tagview/PLUG
 tags: meta/library
+version: 0.19.1
 files:
   - treeview.plug.js
 ---
@@ -25,3 +26,15 @@ treeview:
   position: lhs   # lhs | rhs | bhs | modal
   size: 1
 ```
+
+## Changelog
+
+- **0.19.1** — Migrated to SilverBullet v2 (Node/npm + `plug-compile`). Performance
+  and architecture work: dropped Zod (~half the bundle), cached panel assets and
+  the tag tree across navigation, markdown-based outline parsing, HTML-escaped
+  labels, debounced save refresh, render deduplication, and per-field config
+  diagnostics.
+
+> **Note:** bump `version:` above whenever `treeview.plug.js` changes — SilverBullet's
+> `Library: Update` only detects updates from changes to this page's content, not
+> from the `.plug.js` binary.
