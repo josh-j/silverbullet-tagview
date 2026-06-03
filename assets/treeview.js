@@ -66,6 +66,10 @@ function escapeHtml(value) {
 // Store current page globally within the panel's script scope
 let panelCurrentPage = "";
 
+// The path of the most recently clicked tag/folder node, so the rename button
+// can act on it. Resets to "" on each panel rebuild (falls back to the picker).
+let lastTagPath = "";
+
 /**
  * Initializes the TreeView's `SortableTree` instance using chevron SVG icons passed via config.
  * @param {TagPageTreeViewJsConfig} config - Configuration object for the tree view.
@@ -129,6 +133,7 @@ function createTagTreeView(config) {
         }
       } else if (nodeType === 'folder' || nodeType === 'tag') {
         debug(`Panel: ${nodeType} node label clicked, toggling:`, nodeName);
+        lastTagPath = nodeName; // remember it for the rename button
         node.toggle();
       } else {
          console.warn("Panel: Clicked node with unknown type:", node.data);
@@ -216,8 +221,13 @@ function initializeTreeViewPanel(config) {
         return true;
       }
       case "rename-tag": {
-        // No args -> the plug runs the interactive tag picker + prompt.
-        syscall("system.invokeFunction", "treeview.renameTag");
+        // Rename the last-clicked tag if there is one; otherwise the plug runs
+        // the interactive tag picker.
+        if (lastTagPath) {
+          syscall("system.invokeFunction", "treeview.renameTag", lastTagPath);
+        } else {
+          syscall("system.invokeFunction", "treeview.renameTag");
+        }
         return true;
       }
       case "reveal-current-page": {

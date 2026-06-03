@@ -1,7 +1,7 @@
 ---
 name: Library/josh-j/silverbullet-tagview/PLUG
 tags: meta/library
-version: 0.19.3
+version: 0.19.4
 files:
   - treeview.plug.js
 ---
@@ -64,6 +64,10 @@ doesn't seem to apply.
 
 ## Changelog
 
+- **0.19.4** — Rename-tag fixes: read only the YAML `tags:` block (no longer
+  leaks inline tags into frontmatter), parse each page once, save the open page
+  so the panel reflects it immediately, normalize the entered name, and let the
+  panel ✎ button rename the last-clicked tag.
 - **0.19.3** — Added `Tag Tree: Rename Tag` (command + panel ✎ button): renames a
   tag and its hierarchical children across the whole space, in both inline
   hashtags and frontmatter `tags:`.

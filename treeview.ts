@@ -5,7 +5,7 @@ import {
   mq,
   space,
 } from "@silverbulletmd/silverbullet/syscalls";
-import { getTagTree, getOutlineTree } from "./api.ts";
+import { getTagTree, getOutlineTree, TagIndexEntry } from "./api.ts";
 import { matchTag, renameTagInText } from "./rename.ts";
 import {
   getCustomStyles,
@@ -268,7 +268,7 @@ export async function showUnifiedPanel(viewType: ViewType = "tags", force = fals
                   <button type="button" data-treeview-action="expand-all" title="Expand all">${iconHeaderExpand}</button>
                   <button type="button" data-treeview-action="collapse-all" title="Collapse all">${iconHeaderCollapse}</button>
                   ${viewType === "tags" ? `<button type="button" data-treeview-action="reveal-current-page" title="Reveal current page">${iconNavigation2}</button>` : ""}
-                  ${viewType === "tags" ? `<button type="button" data-treeview-action="rename-tag" title="Rename a tag">${iconEdit}</button>` : ""}
+                  ${viewType === "tags" ? `<button type="button" data-treeview-action="rename-tag" title="Rename the selected tag (or pick one)">${iconEdit}</button>` : ""}
                   <button type="button" data-treeview-action="refresh" title="Refresh view">${iconRefresh}</button>
                 </div>
                 <div class="treeview-actions-right">
@@ -312,19 +312,15 @@ export async function showVersion() {
   await editor.flashNotification(`${PLUG_DISPLAY_NAME} v${PLUG_VERSION}`);
 }
 
-interface TagEntry {
-  name: string;
-  page: string;
-}
-
 // Command: "Tag Tree: Rename Tag" (and the panel rename button). Renames a tag
 // and all hierarchical children across every page that uses them, in both
 // inline #hashtags and frontmatter `tags:` lists. Callable with no argument
-// (interactive picker) or with a specific oldTag.
+// (interactive picker) or with a specific oldTag (e.g. the tag clicked in the
+// panel).
 export async function renameTag(oldTag?: string) {
-  let tagObjs: TagEntry[] = [];
+  let tagObjs: TagIndexEntry[] = [];
   try {
-    tagObjs = await index.queryLuaObjects<TagEntry>("tag", {});
+    tagObjs = await index.queryLuaObjects<TagIndexEntry>("tag", {});
   } catch (e) {
     console.error("renameTag: failed to read tag index", e);
     await editor.flashNotification("Could not read tags from the index.", "error");
@@ -349,9 +345,9 @@ export async function renameTag(oldTag?: string) {
     oldTag = choice.name;
   }
 
-  // 2. New name.
+  // 2. New name. Normalize: drop a leading `#` the user may have typed and trim.
   const entered = await editor.prompt(`Rename #${oldTag} to:`, oldTag);
-  const newTag = entered?.trim();
+  const newTag = entered?.trim().replace(/^#+/, "").trim();
   if (!newTag || newTag === oldTag) return;
 
   // 3. Find affected pages (and count child tags) using the rename rule.
@@ -391,6 +387,9 @@ export async function renameTag(oldTag?: string) {
         const newText = await renameTagInText(text, oldTag, newTag);
         if (newText !== text) {
           await editor.setText(newText);
+          // Persist immediately so the change is indexed (and picked up by the
+          // panel refresh below) rather than waiting for the autosave debounce.
+          await editor.save();
           updated++;
         }
       } else {

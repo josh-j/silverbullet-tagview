@@ -5,7 +5,7 @@
       renderToText,
     } from "@silverbulletmd/silverbullet/lib/tree";
     import { TagTreeViewConfig } from "./config.ts";
-    interface TagIndexEntry { name: string; page: string; [key: string]: any; }
+    export interface TagIndexEntry { name: string; page: string; [key: string]: any; }
     type PageNodeData = { name: string; title: string; nodeType: "page"; };
     type FolderNodeData = { name: string; title: string; nodeType: "folder"; };
     type TagNodeData = { name: string; title: string; nodeType: "tag"; pageCount: number; };
