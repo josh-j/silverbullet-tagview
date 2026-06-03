@@ -1,168 +1,97 @@
-
 # SilverBullet TreeView plug
 
-This plugs adds a tree view that allows you to navigate your SilverBullet pages Hierarchically.
+A unified navigation panel for **SilverBullet v2** with two view modes:
 
+- **Tag Tree View** — a hierarchical, tag-based tree for navigating pages by tag.
+- **Outline View** — all headers in the current page for quick in-page navigation.
+
+Switch between modes with the view-switcher buttons in the panel header.
 
 <a href="screenshot.png"><img src="screenshot.png" width="400"  /></a>
 <a href="screenshot-dark.png"><img src="screenshot-dark.png" width="400"  /></a>
 
-Dragging-and-dropping files and folders is supported but requires SilverBullet v0.7.2 or greater. If running < v0.7.2, this feature will be automatically disabled (regardless of [configuration](#configuration)).
-
 ## Installation
 
-Use the `Plugs: Add` command and enter the following URI:
+This plug is distributed as a SilverBullet v2 [Library](https://silverbullet.md/Library).
+Run the **`Library: Install`** command (Configuration Manager → Libraries) and enter:
 
-`github:joekrill/silverbullet-treeview/treeview.plug.js`
-
-_or_
-
-Open (`cmd+k`) your `PLUGS` note in SilverBullet and add this plug to the list:
-
-```yaml
-- github:joekrill/silverbullet-treeview/treeview.plug.js
+```
+https://github.com/josh-j/silverbullet-tagview/blob/main/PLUG.md
 ```
 
-Then run the `Plugs: Update` command and off you go!
+It installs as `Library/josh-j/silverbullet-tagview/PLUG` plus `treeview.plug.js`.
+If the commands don't appear right away, run **`Plugs: Reload`**. To get later
+updates, use **`Library: Update`**.
+
+> SilverBullet v1 (the old `Plugs: Add` / `SETTINGS` / `_plug` flow) is **not**
+> supported by this version.
+
+## Commands
+
+| Command | Default key | Description |
+|---------|-------------|-------------|
+| `Tag Tree: Toggle` | `Ctrl/Cmd-Alt-B` | Show/hide the panel in Tag Tree mode |
+| `Outline: Toggle` | `Ctrl/Cmd-Alt-O` | Show/hide the panel in Outline mode |
+| `Tag Tree: Version` | — | Show the installed plug version |
 
 ## Configuration
 
-This plug can be configured using the `SETTINGS` page (default values shown):
+All settings are **optional**. The plug reads them from a `treeview` key on your
+`CONFIG` page (you can also set them from a [Space Lua](https://silverbullet.md/Space%20Lua)
+block via `config.set("treeview", { ... })`). Defaults are shown below.
 
 ```yaml
 treeview:
-  # Determines where the panel is displayed:
-  # - "lhs" - left hand side
-  # - "rhs" - right hand side
-  # - "bhs" - bottom
-  # - "modal" - in a modal
+  # Where the panel docks. One of: lhs | rhs | bhs | modal
+  #   lhs   - left-hand side (default)
+  #   rhs   - right-hand side
+  #   bhs   - bottom
+  #   modal - floating modal overlay
   position: lhs
 
-  # Must be > 0.
-  # position = "lhs" | "rhs": determines the width of the panel.
-  # position = "modal": sets the margin around the modal window.
-  # position = "bhs": No effect
+  # Panel size as a CSS flex factor (must be a number > 0). Larger values make
+  # the panel bigger relative to the editor. Default: 1
   size: 1
-
-  dragAndDrop:
-    # Set to false to disable drag-and-drop
-    enabled: true
-
-    # Set to false to disable the confirmation prompt shown when dragging and
-    # dropping pages that causes them to be renamed/moved.
-    confirmOnRename: true
-
-  # An array of exclusion rules that will exclude pages from being 
-  # displayed in the sidebar.
-  exclusions:
-  
-  # Filter by regular expression:
-  - type: "regex"
-    # Regular Expression string to exclude pages from the tree
-    # Examples:
-    # - Any page that is all-caps: "^[A-Z]+$"
-    # - A specific set of pages: "^(?:SETTINGS|PLUGS|index|Library)$"
-    # - Any path containing Hidden (e.g. test/Hidden/page1): "Hidden" 
-    rule: "^(?:SETTINGS|PLUGS|index|Library)$"
-    # Optional: set to true to negate the rule, only showing pages that match this regex.
-    negate: false
-
-  # Filter by page tags:
-  - type: "tags"
-    tags: ["meta"]
-    # Optional: set to true to negate the rule, only showing pages that include any of the tags.
-    negate: false
-
-  # Filter by a space function (see "Filtering by custom function example", below)
-  - type: "space-function"
-    name: "myCustomFilterFunction"
-    # Optional: set to true to negate the rule, only showing pages for which the function returns false
-    negate: false
-
-  # This setting has been deprected - use an `exclusion` rule of `type: regec` instead.
-  pageExcludeRegex: "^(?:SETTINGS|PLUGS|index|Library)$"
 ```
 
-### Adding a top bar toggle icon
+| Key | Type | Default | Notes |
+|-----|------|---------|-------|
+| `position` | `"lhs"` \| `"rhs"` \| `"bhs"` \| `"modal"` | `"lhs"` | Where the panel docks |
+| `size` | number > 0 | `1` | Panel flex size relative to the editor |
 
-![Screenshot](screenshot-action-button.png)
-
-You can add add a button to the top bar that will toggle the tree view by adding
-the following to your `actionButtons` array in your `SETTINGS` page:
-
-```yaml
-actionButtons:
-- icon: sidebar
-  command: "{[Tree View: Toggle]}"
-  description: "Toggle Tree View"
-```
-
-### Filtering by custom function example
-
-Using an exclusion rule with `type: "space-function"` allows you to write your own logic around which pages to show in the tree view. The function will be called with the page object as the first and only parameter.
-
-As an example, we could create a function that excludes daily journal pages 
-that are older than 7 days.
-
-1. Create a space script which defines the filter logic:
-
-    ````
-    ```space-script
-    silverbullet.registerFunction({name: "filterOldDailyNotes"}, async (page) => {
-      if (!page.name.startsWith("Journal/Day/")) {
-        // If it's not a daily journal page, don't exclude it.
-        return false;
-      }
-
-      // Extract the date part from the page name and parse it
-      const datePart = page.name.split("/")[2];
-      const parsedDate = Temporal.PlainDate.from(datePart);
-      const timeSince = Temporal.Now.plainDateISO().since(parsedDate, { largestUnit: 'days' });
-      
-      return timeSince.days > 7;
-    });
-    ```
-    ````
-    
-2. Add the exclusion rule to the `SETTINGS` page:
-
-    ```yaml 
-    treeview:
-      exclusions:
-      - type: "space-function"
-        name: "filterOldDailyNotes"
-    ```
-
+Invalid values are ignored (the default is used) and the plug flashes a
+notification naming the offending key — so if a setting doesn't seem to apply,
+check the notification.
 
 ## Build
 
-To build this plug, make sure you have [SilverBullet installed](https://silverbullet.md/Install). Then, build the plug with:
+This plug targets SilverBullet v2 and builds with Node/npm using the
+`plug-compile` bin from the `@silverbulletmd/silverbullet` package.
 
 ```shell
-deno task build
+npm install      # first time
+npm run build    # produces treeview.plug.js
+npm run watch    # rebuild on change
+npm run debug    # unminified build with per-function size info
 ```
 
-Or to watch for changes and rebuild automatically
+To test a local build, copy `treeview.plug.js` into your space (any folder) and
+run **`Plugs: Reload`** — SilverBullet v2 loads any `*.plug.js` in the space.
 
-```shell
-deno task watch
-```
-
-Then, copy the resulting `.plug.js` file into your space's `_plug` folder. Or build and copy in one command:
-
-```shell
-deno task build && cp *.plug.js /my/space/_plug/
-```
-
-SilverBullet will automatically sync and load the new version of the plug (or speed up this process by running the {[Sync: Now]} command).
+> **Maintainer note:** SilverBullet's `Library: Update` detects new versions from
+> changes to `PLUG.md` content, **not** from the `.plug.js` binary. Bump the
+> `version:` field in `PLUG.md` (and `PLUG_VERSION` in `config.ts`) whenever you
+> ship a new build, or clients won't see the update.
 
 ## Development
 
 ### `SortableTree`
 
-The tree component used is Marc Anton Dahmen's [SortableTree](https://marcantondahmen.github.io/sortable-tree) component ([Github Repo](https://github.com/marcantondahmen/sortable-tree)).
+The tree component is Marc Anton Dahmen's
+[SortableTree](https://marcantondahmen.github.io/sortable-tree)
+([GitHub repo](https://github.com/marcantondahmen/sortable-tree)).
 
-Latest build files can be found here (replace them in `assets/sortable-tree` to upgrade): 
+Latest build files (replace them in `assets/sortable-tree` to upgrade):
 
 - https://unpkg.com/sortable-tree/dist/sortable-tree.js
 - https://unpkg.com/sortable-tree/dist/sortable-tree.css

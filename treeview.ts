@@ -6,6 +6,7 @@ import {
   isTreeViewEnabled,
   PLUG_DISPLAY_NAME,
   PLUG_NAME,
+  PLUG_VERSION,
   Position,
   setLastView,
   setTreeViewEnabled,
@@ -293,4 +294,9 @@ export async function showUnifiedPanel(viewType: ViewType = "tags", force = fals
 // Compatibility function referenced by the manifest (`show`). Explicit show.
 export async function showTree() {
   return await showUnifiedPanel("tags", true);
+}
+
+// Command: "Tag Tree: Version" — report the installed plug version.
+export async function showVersion() {
+  await editor.flashNotification(`${PLUG_DISPLAY_NAME} v${PLUG_VERSION}`);
 }

@@ -7,6 +7,9 @@ import {
 // Keep PLUG_NAME and PLUG_DISPLAY_NAME
 export const PLUG_NAME = "treeview";
 export const PLUG_DISPLAY_NAME = "Tag TreeView Plug";
+// Single source of truth for the version reported by the "Tag Tree: Version"
+// command. Keep in sync with package.json, treeview.plug.yaml and PLUG.md.
+export const PLUG_VERSION = "0.19.2";
 
 const ENABLED_STATE_KEY = "enableTreeView"; // Panel visibility state
 const VIEW_STATE_KEY = "treeViewLastView"; // Last active view ("tags" | "outline")
