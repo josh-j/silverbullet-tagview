@@ -66,9 +66,11 @@ function escapeHtml(value) {
 // Store current page globally within the panel's script scope
 let panelCurrentPage = "";
 
-// The path of the most recently clicked tag/folder node, so the rename button
-// can act on it. Resets to "" on each panel rebuild (falls back to the picker).
+// The most recently clicked tag/folder node — its path drives the rename
+// button, and the element gets a "treeview-selected" class for visual feedback.
+// Both reset on each panel rebuild (the button then falls back to the picker).
 let lastTagPath = "";
+let selectedNodeEl = null;
 
 /**
  * Initializes the TreeView's `SortableTree` instance using chevron SVG icons passed via config.
@@ -133,7 +135,13 @@ function createTagTreeView(config) {
         }
       } else if (nodeType === 'folder' || nodeType === 'tag') {
         debug(`Panel: ${nodeType} node label clicked, toggling:`, nodeName);
-        lastTagPath = nodeName; // remember it for the rename button
+        // Mark this tag as the rename target and highlight it.
+        lastTagPath = nodeName;
+        if (selectedNodeEl && selectedNodeEl !== node) {
+          selectedNodeEl.classList.remove("treeview-selected");
+        }
+        node.classList.add("treeview-selected");
+        selectedNodeEl = node;
         node.toggle();
       } else {
          console.warn("Panel: Clicked node with unknown type:", node.data);

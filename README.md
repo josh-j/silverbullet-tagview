@@ -38,7 +38,9 @@ updates, use **`Library: Update`**.
 ## Renaming tags
 
 `Tag Tree: Rename Tag` — or the ✎ button in the panel header (Tags view) — renames
-a tag across your whole space. Pick the tag, enter the new name, and confirm
+a tag across your whole space. Click a tag in the panel (it's highlighted to show
+it's the rename target) then press ✎, or run the command and pick from the list.
+Enter the new name, and confirm
 (it reports how many files are affected). It rewrites both inline `#hashtags` and
 frontmatter `tags:` entries, and renames **hierarchical children** too: renaming
 `econ` → `economics` turns `#econ` into `#economics` *and* `#econ/us` into

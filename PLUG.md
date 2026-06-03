@@ -1,7 +1,7 @@
 ---
 name: Library/josh-j/silverbullet-tagview/PLUG
 tags: meta/library
-version: 0.19.4
+version: 0.19.5
 files:
   - treeview.plug.js
 ---
@@ -30,7 +30,8 @@ Tags and Outline modes, and the ✎ button (Tags view) to rename a tag.
 `Tag Tree: Rename Tag` (or the ✎ button in the panel header) renames a tag
 across your whole space:
 
-1. Pick the tag to rename from the list.
+1. Pick the tag to rename — click a tag in the panel (it gets highlighted to
+   show it's the target) and press ✎, or run the command and pick from the list.
 2. Enter the new name.
 3. Confirm the change (it shows how many files are affected).
 
@@ -64,6 +65,8 @@ doesn't seem to apply.
 
 ## Changelog
 
+- **0.19.5** — The tag clicked in the panel is now highlighted to show what the
+  ✎ Rename button will act on.
 - **0.19.4** — Rename-tag fixes: read only the YAML `tags:` block (no longer
   leaks inline tags into frontmatter), parse each page once, save the open page
   so the panel reflects it immediately, normalize the entered name, and let the

@@ -212,6 +212,21 @@ body {
     color: var(--treeview-folder-tag-color);
 }
 
+/* Selected tag/folder — the target of the Rename Tag (✎) button. Uses a
+   persistent accent ring + emphasis to stay distinct from the hover state.
+   `> .tree__label` restricts this to the selected node's own row, not its
+   descendants. */
+.treeview-selected > .tree__label > span[data-node-type="folder"],
+.treeview-selected > .tree__label > span[data-node-type="tag"] {
+    border-color: var(--ui-accent-color);
+    background-color: var(
+        --hover-background-color,
+        var(--subtle-background-color)
+    );
+    box-shadow: 0 0 0 1px var(--ui-accent-color);
+    font-weight: 600;
+}
+
 /* Page specific style */
 .tree__label > span[data-node-type="page"] {
     background-color: var(--treeview-page-background-color);
