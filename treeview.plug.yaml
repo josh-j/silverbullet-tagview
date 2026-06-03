@@ -14,12 +14,17 @@ functions:
     events:
       - editor:init
       - editor:pageLoaded
-      - file:deleted
-  # Debounced refresh on save (coalesces bursts of saves into one rebuild)
+  # Debounced refresh on save (coalesces bursts of saves into one rebuild and
+  # invalidates the cached tag tree, since a save may add/remove tags)
   refreshOnSave:
     path: "./treeview.ts:refreshOnSave"
     events:
       - editor:pageSaved
+  # Deleting a page can remove its tags; invalidate the cache and refresh
+  refreshOnDelete:
+    path: "./treeview.ts:refreshOnDelete"
+    events:
+      - file:deleted
 
   # User facing command - Tag Tree
   toggle:

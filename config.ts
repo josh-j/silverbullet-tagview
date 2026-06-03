@@ -26,22 +26,58 @@ export interface TagTreeViewConfig {
 
 const DEFAULT_CONFIG: TagTreeViewConfig = { position: "lhs", size: 1 };
 
+// Only notify about config problems once per "breakage episode" so a bad value
+// doesn't flash an error on every refresh; reset when config parses cleanly.
+let configErrorShown = false;
+function notifyConfigErrors(errors: string[]) {
+  if (configErrorShown) return;
+  configErrorShown = true;
+  void editor.flashNotification(
+    `${PLUG_DISPLAY_NAME} config: ${errors.join("; ")}. Check your CONFIG page.`,
+    "error",
+  );
+}
+
 /**
  * Validates/coerces raw config into a TagTreeViewConfig, falling back to
- * defaults for any missing or invalid fields. Replaces the previous Zod schema
- * (which accounted for ~half the compiled plug size) with a tiny total parser.
+ * defaults for any invalid field and reporting which field was wrong. Replaces
+ * the previous Zod schema (which accounted for ~half the compiled plug size)
+ * with a tiny total parser that still surfaces per-field diagnostics.
  */
 function parseConfig(raw: unknown): TagTreeViewConfig {
   const obj = (raw && typeof raw === "object" ? raw : {}) as Record<
     string,
     unknown
   >;
-  const position = POSITIONS.includes(obj.position as Position)
-    ? (obj.position as Position)
-    : DEFAULT_CONFIG.position;
-  const size = typeof obj.size === "number" && obj.size > 0
-    ? obj.size
-    : DEFAULT_CONFIG.size;
+  const errors: string[] = [];
+
+  let position = DEFAULT_CONFIG.position;
+  if (obj.position !== undefined) {
+    if (POSITIONS.includes(obj.position as Position)) {
+      position = obj.position as Position;
+    } else {
+      errors.push(
+        `\`position\` must be one of ${POSITIONS.join(", ")} (got ${
+          JSON.stringify(obj.position)
+        })`,
+      );
+    }
+  }
+
+  let size = DEFAULT_CONFIG.size;
+  if (obj.size !== undefined) {
+    if (typeof obj.size === "number" && obj.size > 0) {
+      size = obj.size;
+    } else {
+      errors.push(`\`size\` must be a number > 0 (got ${JSON.stringify(obj.size)})`);
+    }
+  }
+
+  if (errors.length > 0) {
+    notifyConfigErrors(errors);
+  } else {
+    configErrorShown = false; // config is clean again; re-arm notifications
+  }
   return { position, size };
 }
 

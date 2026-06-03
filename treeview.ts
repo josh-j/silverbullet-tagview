@@ -44,6 +44,36 @@ let cachedAssets: PanelAssets | undefined;
 // the rebuild when this matches; user-initiated actions force a render.
 let lastRenderSignature: string | undefined;
 
+// The tag tree depends only on the tag index (which changes on save/delete),
+// not on which page is open. So cache it and reuse it across navigation,
+// re-querying the whole index only when a data-changing event marks it dirty.
+// (The outline view is page-specific and cheap to re-parse, so it is not cached.)
+let cachedTagTree: Awaited<ReturnType<typeof getTagTree>> | undefined;
+let tagTreeDirty = true;
+
+async function getTagData(
+  config: TagTreeViewConfig,
+): Promise<Awaited<ReturnType<typeof getTagTree>>> {
+  if (tagTreeDirty || !cachedTagTree) {
+    cachedTagTree = await getTagTree(config);
+    tagTreeDirty = false;
+  }
+  return cachedTagTree;
+}
+
+// Serializing the whole node tree for the render signature is wasteful when the
+// tree is unchanged. Cache the serialization keyed by node-array identity, so a
+// reused (reference-equal) tag tree is not re-stringified on every navigation.
+let cachedNodesSig: { nodes: unknown; sig: string } | undefined;
+function nodesSignature(nodes: unknown): string {
+  if (cachedNodesSig && cachedNodesSig.nodes === nodes) {
+    return cachedNodesSig.sig;
+  }
+  const sig = JSON.stringify(nodes);
+  cachedNodesSig = { nodes, sig };
+  return sig;
+}
+
 async function loadAssets(): Promise<PanelAssets> {
   if (cachedAssets) return cachedAssets;
   const [
@@ -131,6 +161,8 @@ let saveRefreshTimer: ReturnType<typeof setTimeout> | undefined;
 const SAVE_REFRESH_DEBOUNCE_MS = 750;
 
 export function refreshOnSave() {
+  // A save may have added/removed tags, so the cached tag tree is now stale.
+  tagTreeDirty = true;
   if (saveRefreshTimer !== undefined) {
     clearTimeout(saveRefreshTimer);
   }
@@ -140,12 +172,20 @@ export function refreshOnSave() {
   }, SAVE_REFRESH_DEBOUNCE_MS);
 }
 
+export async function refreshOnDelete() {
+  // Deleting a page can remove tags it carried, so invalidate the tag cache.
+  tagTreeDirty = true;
+  await showTreeIfEnabled();
+}
+
 
 /**
  * Shows a unified panel that can display either tag tree or outline view
  */
 export async function showUnifiedPanel(viewType: ViewType = "tags", force = false) {
   await setLastView(viewType);
+  // A user-initiated render (refresh/toggle/switch) should reflect fresh data.
+  if (force) tagTreeDirty = true;
   const config: TagTreeViewConfig = await getPlugConfig();
 
   if (currentPosition && config.position !== currentPosition) {
@@ -159,24 +199,22 @@ export async function showUnifiedPanel(viewType: ViewType = "tags", force = fals
         iconXCircle, nodeIconCollapsedSvg, nodeIconOpenSvg,
       } = await loadAssets();
 
-      // Fetch data based on view type
+      // Fetch data based on view type. Tags reuse the cached tree across
+      // navigation (see getTagData); outline is page-specific and re-parsed.
       const [{ nodes }, currentPage, customStyles] = await Promise.all([
-        viewType === "tags" ? getTagTree(config) : getOutlineTree(),
+        viewType === "tags" ? getTagData(config) : getOutlineTree(),
         editor.getCurrentPage(),
         getCustomStyles(),
       ]);
 
       // Skip the (DOM-wiping) showPanel call when an event-driven refresh would
       // produce an identical panel — e.g. saving a page whose tags/headers did
-      // not change. Everything that affects the rendered output goes into the
-      // signature; user-initiated actions pass force=true to always render.
-      const signature = JSON.stringify({
-        viewType,
-        position: config.position,
-        currentPage,
-        customStyles: customStyles ?? "",
-        nodes,
-      });
+      // not change. The cheap scalars are JSON-encoded; the node tree is
+      // serialized via nodesSignature, which reuses the cached string when the
+      // tree is reference-equal (the common navigation case for tags).
+      const signature =
+        JSON.stringify([viewType, config.position, currentPage, customStyles ?? ""]) +
+        nodesSignature(nodes);
       if (!force && currentPosition === config.position &&
           signature === lastRenderSignature) {
         return;
