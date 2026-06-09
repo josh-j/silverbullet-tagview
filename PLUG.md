@@ -1,29 +1,25 @@
 ---
 name: Library/josh-j/silverbullet-tagview/PLUG
 tags: meta/library
-version: 0.19.5
+version: 0.19.9
 files:
   - treeview.plug.js
 ---
 
 # TagView
 
-A unified navigation panel for SilverBullet v2 with two view modes:
-
-- **Tag Tree View** — a hierarchical, tag-based tree for navigating pages by tag.
-- **Outline View** — all headers in the current page for quick in-page navigation.
+A hierarchical, tag-based navigation panel for SilverBullet v2.
 
 ## Commands
 
 | Command | Default key | Description |
 |---------|-------------|-------------|
-| `Tag Tree: Toggle` | `Ctrl/Cmd-Alt-B` | Show/hide the panel in Tag Tree mode |
-| `Outline: Toggle` | `Ctrl/Cmd-Alt-O` | Show/hide the panel in Outline mode |
+| `Tag Tree: Toggle` | `Ctrl/Cmd-Alt-B` | Show/hide the tag tree panel |
+| `Tag Tree: Filter` | `/` | Focus the tag/page filter |
 | `Tag Tree: Rename Tag` | — | Rename a tag everywhere it's used |
 | `Tag Tree: Version` | — | Show the installed plug version |
 
-Within the panel, use the view-switcher buttons in the header to switch between
-Tags and Outline modes, and the ✎ button (Tags view) to rename a tag.
+Within the panel, use the ✎ button to rename a tag.
 
 ## Renaming tags
 
@@ -65,6 +61,12 @@ doesn't seem to apply.
 
 ## Changelog
 
+- **0.19.9** — Added a tag/page filter field and `/` filter hotkey.
+- **0.19.8** — Direct pages now sort before child tags, with tighter child
+  indentation.
+- **0.19.7** — Tags start collapsed by default.
+- **0.19.6** — Removed the alternate view UI and extra command; the panel is now
+  tags-only.
 - **0.19.5** — The tag clicked in the panel is now highlighted to show what the
   ✎ Rename button will act on.
 - **0.19.4** — Rename-tag fixes: read only the YAML `tags:` block (no longer
@@ -77,8 +79,8 @@ doesn't seem to apply.
 - **0.19.2** — Added the `Tag Tree: Version` command.
 - **0.19.1** — Migrated to SilverBullet v2 (Node/npm + `plug-compile`). Performance
   and architecture work: dropped Zod (~half the bundle), cached panel assets and
-  the tag tree across navigation, markdown-based outline parsing, HTML-escaped
-  labels, debounced save refresh, render deduplication, and per-field config
+  the tag tree across navigation, HTML-escaped labels, debounced save refresh,
+  render deduplication, and per-field config
   diagnostics.
 
 > **Note:** bump `version:` above whenever `treeview.plug.js` changes — SilverBullet's

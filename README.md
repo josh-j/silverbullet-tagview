@@ -1,11 +1,7 @@
 # SilverBullet TreeView plug
 
-A unified navigation panel for **SilverBullet v2** with two view modes:
-
-- **Tag Tree View** — a hierarchical, tag-based tree for navigating pages by tag.
-- **Outline View** — all headers in the current page for quick in-page navigation.
-
-Switch between modes with the view-switcher buttons in the panel header.
+A tag navigation panel for **SilverBullet v2**: a hierarchical, tag-based tree
+for navigating pages by tag.
 
 <a href="screenshot.png"><img src="screenshot.png" width="400"  /></a>
 <a href="screenshot-dark.png"><img src="screenshot-dark.png" width="400"  /></a>
@@ -30,14 +26,14 @@ updates, use **`Library: Update`**.
 
 | Command | Default key | Description |
 |---------|-------------|-------------|
-| `Tag Tree: Toggle` | `Ctrl/Cmd-Alt-B` | Show/hide the panel in Tag Tree mode |
-| `Outline: Toggle` | `Ctrl/Cmd-Alt-O` | Show/hide the panel in Outline mode |
+| `Tag Tree: Toggle` | `Ctrl/Cmd-Alt-B` | Show/hide the tag tree panel |
+| `Tag Tree: Filter` | `/` | Focus the tag/page filter |
 | `Tag Tree: Rename Tag` | — | Rename a tag (and its children) everywhere it's used |
 | `Tag Tree: Version` | — | Show the installed plug version |
 
 ## Renaming tags
 
-`Tag Tree: Rename Tag` — or the ✎ button in the panel header (Tags view) — renames
+`Tag Tree: Rename Tag` — or the ✎ button in the panel header — renames
 a tag across your whole space. Click a tag in the panel (it's highlighted to show
 it's the rename target) then press ✎, or run the command and pick from the list.
 Enter the new name, and confirm

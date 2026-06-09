@@ -5,24 +5,22 @@ import {
   mq,
   space,
 } from "@silverbulletmd/silverbullet/syscalls";
-import { getTagTree, getOutlineTree, TagIndexEntry } from "./api.ts";
+import { getTagTree, TagIndexEntry } from "./api.ts";
 import { matchTag, renameTagInText } from "./rename.ts";
 import {
   getCustomStyles,
-  getLastView,
   isTreeViewEnabled,
   PLUG_DISPLAY_NAME,
   PLUG_NAME,
   PLUG_VERSION,
   Position,
-  setLastView,
   setTreeViewEnabled,
   TagTreeViewConfig,
-  ViewType,
 } from "./config.ts";
 import { getPlugConfig } from "./config.ts";
 
 let currentPosition: Position | undefined;
+let focusFilterOnRender = false;
 
 /**
  * Static panel assets (CSS/JS/SVG icons) never change at runtime, so they are
@@ -56,7 +54,6 @@ let lastRenderSignature: string | undefined;
 // The tag tree depends only on the tag index (which changes on save/delete),
 // not on which page is open. So cache it and reuse it across navigation,
 // re-querying the whole index only when a data-changing event marks it dirty.
-// (The outline view is page-specific and cheap to re-parse, so it is not cached.)
 let cachedTagTree: Awaited<ReturnType<typeof getTagTree>> | undefined;
 let tagTreeDirty = true;
 
@@ -122,25 +119,21 @@ async function loadAssets(): Promise<PanelAssets> {
 
 export async function toggleTree() {
   if (!(await isTreeViewEnabled())) {
-    await showUnifiedPanel("tags", true);
+    await showTreePanel(true);
   } else {
     await hideTree();
   }
 }
 
-export async function toggleOutline() {
-  if (!(await isTreeViewEnabled())) {
-    await showUnifiedPanel("outline", true);
-  } else {
-    await hideTree();
-  }
-}
-
-export async function switchView(viewType: ViewType) {
+export async function refreshTree() {
   if (await isTreeViewEnabled()) {
-    // User-initiated (view switcher / refresh button) -> always render.
-    await showUnifiedPanel(viewType, true);
+    await showTreePanel(true);
   }
+}
+
+export async function focusFilter() {
+  focusFilterOnRender = true;
+  await showTreePanel(true);
 }
 
 export async function hideTree() {
@@ -157,7 +150,7 @@ export async function showTreeIfEnabled() {
     // In v2, plugs only ever run client-side (Web Worker sandbox), so there is
     // no server environment to guard against.
     if (await isTreeViewEnabled()) {
-      return await showUnifiedPanel(await getLastView());
+      return await showTreePanel();
     }
   } catch (err) {
     console.error(`${PLUG_DISPLAY_NAME}: showTreeIfEnabled failed`, err);
@@ -191,10 +184,9 @@ export async function refreshOnDelete() {
 
 
 /**
- * Shows a unified panel that can display either tag tree or outline view
+ * Shows the tag tree panel.
  */
-export async function showUnifiedPanel(viewType: ViewType = "tags", force = false) {
-  await setLastView(viewType);
+export async function showTreePanel(force = false) {
   // A user-initiated render (refresh/toggle/switch) should reflect fresh data.
   if (force) tagTreeDirty = true;
   const config: TagTreeViewConfig = await getPlugConfig();
@@ -210,21 +202,19 @@ export async function showUnifiedPanel(viewType: ViewType = "tags", force = fals
         iconXCircle, iconEdit, nodeIconCollapsedSvg, nodeIconOpenSvg,
       } = await loadAssets();
 
-      // Fetch data based on view type. Tags reuse the cached tree across
-      // navigation (see getTagData); outline is page-specific and re-parsed.
       const [{ nodes }, currentPage, customStyles] = await Promise.all([
-        viewType === "tags" ? getTagData(config) : getOutlineTree(),
+        getTagData(config),
         editor.getCurrentPage(),
         getCustomStyles(),
       ]);
 
       // Skip the (DOM-wiping) showPanel call when an event-driven refresh would
-      // produce an identical panel — e.g. saving a page whose tags/headers did
+      // produce an identical panel — e.g. saving a page whose tags did
       // not change. The cheap scalars are JSON-encoded; the node tree is
       // serialized via nodesSignature, which reuses the cached string when the
       // tree is reference-equal (the common navigation case for tags).
       const signature =
-        JSON.stringify([viewType, config.position, currentPage, customStyles ?? ""]) +
+        JSON.stringify([config.position, currentPage, customStyles ?? ""]) +
         nodesSignature(nodes);
       if (!force && currentPosition === config.position &&
           signature === lastRenderSignature) {
@@ -232,12 +222,14 @@ export async function showUnifiedPanel(viewType: ViewType = "tags", force = fals
       }
 
       // Prepare config for the frontend JS, including node icon SVG content
+      const focusFilter = focusFilterOnRender;
+      focusFilterOnRender = false;
       const treeViewJsConfig = {
         nodes,
         currentPage, // Pass current page for highlighting
-        treeElementId: viewType === "tags" ? "treeview-tree" : "outline-tree",
+        treeElementId: "treeview-tree",
+        focusFilter,
         dragAndDrop: { enabled: false }, // Keep D&D disabled
-        viewType, // Pass the current view type
         // Pass SVG content for node icons
         nodeIcons: {
             collapsed: nodeIconCollapsedSvg, // Pass chevron-right content
@@ -259,21 +251,20 @@ export async function showUnifiedPanel(viewType: ViewType = "tags", force = fals
           </style>
           <div class="treeview-root">
             <div class="treeview-header">
-              <div class="treeview-view-switcher">
-                <button type="button" data-treeview-action="switch-tags" class="${viewType === "tags" ? "active" : ""}" title="Tags View">Tags</button>
-                <button type="button" data-treeview-action="switch-outline" class="${viewType === "outline" ? "active" : ""}" title="Outline View">Outline</button>
-              </div>
               <div class="treeview-actions">
                 <div class="treeview-actions-left">
                   <button type="button" data-treeview-action="expand-all" title="Expand all">${iconHeaderExpand}</button>
                   <button type="button" data-treeview-action="collapse-all" title="Collapse all">${iconHeaderCollapse}</button>
-                  ${viewType === "tags" ? `<button type="button" data-treeview-action="reveal-current-page" title="Reveal current page">${iconNavigation2}</button>` : ""}
-                  ${viewType === "tags" ? `<button type="button" data-treeview-action="rename-tag" title="Rename the selected tag (or pick one)">${iconEdit}</button>` : ""}
+                  <button type="button" data-treeview-action="reveal-current-page" title="Reveal current page">${iconNavigation2}</button>
+                  <button type="button" data-treeview-action="rename-tag" title="Rename the selected tag (or pick one)">${iconEdit}</button>
                   <button type="button" data-treeview-action="refresh" title="Refresh view">${iconRefresh}</button>
                 </div>
                 <div class="treeview-actions-right">
                   <button type="button" data-treeview-action="close-panel" title="Close panel">${iconXCircle}</button>
                 </div>
+              </div>
+              <div class="treeview-filter-row">
+                <input id="treeview-filter" type="search" placeholder="Filter" title="Filter tags and pages" autocomplete="off" spellcheck="false" />
               </div>
             </div>
             <div id="${treeViewJsConfig.treeElementId}"></div>
@@ -304,7 +295,7 @@ export async function showUnifiedPanel(viewType: ViewType = "tags", force = fals
 
 // Compatibility function referenced by the manifest (`show`). Explicit show.
 export async function showTree() {
-  return await showUnifiedPanel("tags", true);
+  return await showTreePanel(true);
 }
 
 // Command: "Tag Tree: Version" — report the installed plug version.
@@ -414,7 +405,7 @@ export async function renameTag(oldTag?: string) {
   }
   tagTreeDirty = true;
   if (await isTreeViewEnabled()) {
-    await showUnifiedPanel(await getLastView(), true);
+    await showTreePanel(true);
   }
 
   let msg = `Renamed #${oldTag} → #${newTag} in ${updated} ${

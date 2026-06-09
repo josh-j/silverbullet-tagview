@@ -1,16 +1,11 @@
     // --- Imports and type definitions ---
-    import { editor, index, markdown } from "@silverbulletmd/silverbullet/syscalls";
-    import {
-      collectNodesMatching,
-      renderToText,
-    } from "@silverbulletmd/silverbullet/lib/tree";
+    import { editor, index } from "@silverbulletmd/silverbullet/syscalls";
     import { TagTreeViewConfig } from "./config.ts";
     export interface TagIndexEntry { name: string; page: string; [key: string]: any; }
     type PageNodeData = { name: string; title: string; nodeType: "page"; };
     type FolderNodeData = { name: string; title: string; nodeType: "folder"; };
     type TagNodeData = { name: string; title: string; nodeType: "tag"; pageCount: number; };
-    type HeaderNodeData = { name: string; title: string; nodeType: "header"; level: number; pos: number; };
-    type NodeData = FolderNodeData | TagNodeData | PageNodeData | HeaderNodeData;
+    type NodeData = FolderNodeData | TagNodeData | PageNodeData;
     export type TreeNode = { data: NodeData; nodes: TreeNode[]; };
 
     /** Leaf name of a (possibly slash-separated) page path. */
@@ -20,9 +15,9 @@
         : pageName;
     }
 
-    /** Sort comparator: folders/tags before pages, then alphabetical by title. */
+    /** Sort comparator: direct pages before child tags, then alphabetical by title. */
     function compareNodes(a: TreeNode, b: TreeNode): number {
-      const typeOrder = { folder: 0, tag: 0, page: 1 } as const;
+      const typeOrder = { page: 0, folder: 1, tag: 1 } as const;
       const aOrder = typeOrder[a.data.nodeType as keyof typeof typeOrder] ?? 99;
       const bOrder = typeOrder[b.data.nodeType as keyof typeof typeOrder] ?? 99;
       if (aOrder !== bOrder) return aOrder - bOrder;
@@ -109,53 +104,4 @@
       // Single recursive sort pass at the end.
       sortTree(root.nodes);
       return { nodes: root.nodes };
-    }
-
-    export async function getOutlineTree(): Promise<{ nodes: TreeNode[] }> {
-      try {
-        // Parse the page into a markdown syntax tree so headers inside fenced
-        // code blocks (e.g. "# comment") are not mistaken for real headers, and
-        // node offsets come straight from the parser.
-        const pageText = await editor.getText();
-        const tree = await markdown.parseMarkdown(pageText);
-
-        const flatHeaders: HeaderNodeData[] = [];
-        let idx = 0;
-        for (const n of collectNodesMatching(tree, (t) => !!t.type?.startsWith("ATXHeading"))) {
-          const level = +n.type!.substring("ATXHeading".length);
-          const title = renderToText(n).replace(/^#{1,6}\s+/, "").trim();
-          flatHeaders.push({
-            name: `header-${idx++}`,
-            title,
-            nodeType: "header",
-            level,
-            pos: n.from ?? 0,
-          });
-        }
-
-        // Build hierarchical structure using a stack of open parents.
-        const root: TreeNode[] = [];
-        const stack: TreeNode[] = [];
-        for (const headerData of flatHeaders) {
-          const headerNode: TreeNode = { data: headerData, nodes: [] };
-          while (
-            stack.length > 0 &&
-            (stack[stack.length - 1].data as HeaderNodeData).level >= headerData.level
-          ) {
-            stack.pop();
-          }
-          if (stack.length === 0) {
-            root.push(headerNode);
-          } else {
-            stack[stack.length - 1].nodes.push(headerNode);
-          }
-          stack.push(headerNode);
-        }
-
-        return { nodes: root };
-      } catch (error: any) {
-        console.error("Error getting outline:", error);
-        editor.flashNotification(`Error getting outline: ${error.message}`, "error");
-        return { nodes: [] };
-      }
     }

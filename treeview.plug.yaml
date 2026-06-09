@@ -1,5 +1,5 @@
 name: treeview
-version: 0.19.5 # SilverBullet v2 compatible
+version: 0.19.9 # SilverBullet v2 compatible
 description: Displays a hierarchical tree view of tags and associated pages.
 assets:
   - "assets/**/*.*"
@@ -34,17 +34,17 @@ functions:
       key: Ctrl-alt-b
       mac: Cmd-alt-b
 
-  # Switch between views
-  switchView:
-    path: "./treeview.ts:switchView"
+  # User initiated refresh of the tag tree
+  refresh:
+    path: "./treeview.ts:refreshTree"
 
-  # User facing command - Outline View
-  toggleOutline:
-    path: "./treeview.ts:toggleOutline"
+  # User facing command - focus the panel filter
+  filter:
+    path: "./treeview.ts:focusFilter"
     command:
-      name: "Outline: Toggle"
-      key: Ctrl-alt-o
-      mac: Cmd-alt-o
+      name: "Tag Tree: Filter"
+      key: /
+      mac: /
 
   # User facing command - report the plug version
   version:
@@ -57,4 +57,3 @@ functions:
     path: "./treeview.ts:renameTag"
     command:
       name: "Tag Tree: Rename Tag"
-

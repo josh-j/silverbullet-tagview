@@ -46,7 +46,7 @@
 
 
 // ID used for persisting the collapse/expand state in sessionStorage
-const TREE_STATE_ID = "treeview";
+const TREE_STATE_ID = "treeview-tags-collapsed";
 
 // Set to true to surface verbose panel logging in the browser console.
 const DEBUG = false;
@@ -91,7 +91,7 @@ function createTagTreeView(config) {
     disableSorting: true,
     lockRootLevel: true,
     stateId: TREE_STATE_ID,
-    initCollapseLevel: 1,
+    initCollapseLevel: 0,
     // Use the icons received from the config
     icons: {
         collapsed: collapsedIcon,
@@ -115,23 +115,6 @@ function createTagTreeView(config) {
         } catch (e) {
            console.error("Panel: Error navigating to page:", e);
            syscall("editor.flashNotification", `Error navigating: ${e.message}`, "error");
-        }
-      } else if (nodeType === 'header') {
-        debug("Panel: Header text clicked, navigating to position:", node.data.pos);
-        try {
-          // Always navigate when clicking on header text
-          // If the header has children and is collapsed, expand it first
-          if (node.children && node.children[1] && node.children[1].children.length > 0) {
-            // Check if this node is collapsed (doesn't have open="true" attribute)
-            if (!node.hasAttribute('open') || node.getAttribute('open') !== 'true') {
-              node.collapse(false); // Expand this node
-            }
-          }
-          // Use the same navigation approach as the Lua toc widget
-          await syscall("editor.navigate", `${panelCurrentPage}@${node.data.pos}`);
-        } catch (e) {
-           console.error("Panel: Error navigating to header:", e);
-           syscall("editor.flashNotification", `Error navigating to header: ${e.message}`, "error");
         }
       } else if (nodeType === 'folder' || nodeType === 'tag') {
         debug(`Panel: ${nodeType} node label clicked, toggling:`, nodeName);
@@ -161,17 +144,10 @@ function createTagTreeView(config) {
 
         const isCurrentPage = (data.nodeType === 'page' && data.name === panelCurrentPage);
 
-        // Add header level as data attribute for CSS targeting
-        let additionalAttributes = '';
-        if (data.nodeType === 'header' && data.level) {
-          additionalAttributes = `data-header-level="${escapeHtml(data.level)}"`;
-        }
-
         return `
           <span
             data-node-type="${escapeHtml(data.nodeType)}"
             data-current-page="${isCurrentPage}"
-            ${additionalAttributes}
             title="${escapeHtml(data.name)}"
           >
              ${content}
@@ -191,6 +167,68 @@ function initializeTreeViewPanel(config) {
 
   config.dragAndDrop = { enabled: false };
   const tree = createTagTreeView(config);
+  const rootEl = document.querySelector(".treeview-root");
+  const treeEl = document.getElementById(config.treeElementId);
+  const filterInput = document.getElementById("treeview-filter");
+
+  const applyFilter = (rawQuery) => {
+    const query = String(rawQuery || "").trim().toLowerCase();
+    rootEl?.classList.toggle("treeview-filtering", query.length > 0);
+
+    const visit = (node, ancestorMatched = false) => {
+      const data = node.data || {};
+      const haystack = `${data.title || ""} ${data.name || ""}`.toLowerCase();
+      const selfMatches = query.length > 0 && haystack.includes(query);
+      const subtreeIncluded = ancestorMatched || selfMatches;
+      let childVisible = false;
+
+      Array.from(node.subnodes?.children || []).forEach((child) => {
+        childVisible = visit(child, subtreeIncluded) || childVisible;
+      });
+
+      const visible = query.length === 0 || subtreeIncluded || childVisible;
+      node.classList.toggle("treeview-filter-hidden", !visible);
+      node.classList.toggle("treeview-filter-visible", visible);
+      node.classList.toggle("treeview-filter-match", selfMatches);
+      return visible;
+    };
+
+    Array.from(treeEl?.children || []).forEach((node) => visit(node));
+  };
+
+  filterInput?.addEventListener("input", () => applyFilter(filterInput.value));
+  filterInput?.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      if (filterInput.value) {
+        filterInput.value = "";
+        applyFilter("");
+      } else {
+        filterInput.blur();
+      }
+      event.preventDefault();
+      event.stopPropagation();
+    }
+  });
+
+  document.addEventListener("keydown", (event) => {
+    const target = event.target;
+    const isTyping = target instanceof HTMLInputElement ||
+      target instanceof HTMLTextAreaElement ||
+      target instanceof HTMLSelectElement ||
+      target?.isContentEditable;
+    if (event.key === "/" && !event.metaKey && !event.ctrlKey && !event.altKey && !isTyping) {
+      filterInput?.focus();
+      filterInput?.select();
+      event.preventDefault();
+    }
+  });
+
+  if (config.focusFilter) {
+    setTimeout(() => {
+      filterInput?.focus();
+      filterInput?.select();
+    }, 0);
+  }
 
   const handleAction = (action) => {
     switch (action) {
@@ -216,16 +254,7 @@ function initializeTreeViewPanel(config) {
       }
       case "refresh": {
         tree.clearState();
-        const currentView = config.viewType || "tags";
-        syscall("system.invokeFunction", "treeview.switchView", currentView);
-        return true;
-      }
-      case "switch-tags": {
-        syscall("system.invokeFunction", "treeview.switchView", "tags");
-        return true;
-      }
-      case "switch-outline": {
-        syscall("system.invokeFunction", "treeview.switchView", "outline");
+        syscall("system.invokeFunction", "treeview.refresh");
         return true;
       }
       case "rename-tag": {
@@ -271,7 +300,7 @@ function initializeTreeViewPanel(config) {
   }
 
   // Define the actions handled by buttons
-  const handledActions = ["refresh", "close-panel", "collapse-all", "expand-all", "reveal-current-page", "rename-tag", "switch-tags", "switch-outline"];
+  const handledActions = ["refresh", "close-panel", "collapse-all", "expand-all", "reveal-current-page", "rename-tag"];
   // Add click listeners to all action buttons
   document.querySelectorAll("[data-treeview-action]").forEach((el) => {
     const action = el.dataset["treeviewAction"];

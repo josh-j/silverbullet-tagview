@@ -9,16 +9,13 @@ export const PLUG_NAME = "treeview";
 export const PLUG_DISPLAY_NAME = "Tag TreeView Plug";
 // Single source of truth for the version reported by the "Tag Tree: Version"
 // command. Keep in sync with package.json, treeview.plug.yaml and PLUG.md.
-export const PLUG_VERSION = "0.19.5";
+export const PLUG_VERSION = "0.19.9";
 
 const ENABLED_STATE_KEY = "enableTreeView"; // Panel visibility state
-const VIEW_STATE_KEY = "treeViewLastView"; // Last active view ("tags" | "outline")
 
 // Positions remain the same
 const POSITIONS = ["rhs", "lhs", "bhs", "modal"] as const;
 export type Position = typeof POSITIONS[number];
-
-export type ViewType = "tags" | "outline";
 
 export interface TagTreeViewConfig {
   /** Where to position the tree view in the UI. */
@@ -104,16 +101,6 @@ export async function isTreeViewEnabled() {
 
 export async function setTreeViewEnabled(value: boolean) {
   return await clientStore.set(ENABLED_STATE_KEY, value);
-}
-
-export async function getLastView(): Promise<ViewType> {
-  return (await clientStore.get(VIEW_STATE_KEY)) === "outline"
-    ? "outline"
-    : "tags";
-}
-
-export async function setLastView(value: ViewType) {
-  return await clientStore.set(VIEW_STATE_KEY, value);
 }
 
 export async function getCustomStyles() {
