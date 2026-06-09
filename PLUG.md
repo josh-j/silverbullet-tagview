@@ -1,7 +1,7 @@
 ---
 name: Library/josh-j/silverbullet-tagview/PLUG
 tags: meta/library
-version: 0.19.9
+version: 0.20.0
 files:
   - treeview.plug.js
 ---
@@ -61,6 +61,8 @@ doesn't seem to apply.
 
 ## Changelog
 
+- **0.20.0** — Fixed tag row spacing by separating the root gutter from child
+  indentation.
 - **0.19.9** — Added a tag/page filter field and `/` filter hotkey.
 - **0.19.8** — Direct pages now sort before child tags, with tighter child
   indentation.

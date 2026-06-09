@@ -34,9 +34,10 @@ html {
 .treeview-root {
     /* SortableTree variables - Using example's values */
     --st-label-height: 1.75rem;
-    --st-subnodes-padding-left: 0.85rem; /* Indentation for children */
+    --treeview-root-padding-left: 1rem;
+    --st-subnodes-padding-left: 0.95rem; /* Indentation for children */
     --st-collapse-icon-height: var(--st-label-height);
-    --st-collapse-icon-width: 2rem; /* Width of the icon container */
+    --st-collapse-icon-width: 1rem; /* Width of the icon container */
     --st-collapse-icon-size: 14px;
 }
 
@@ -153,7 +154,7 @@ body {
     display: flex;
     flex-direction: column;
     margin: 0.25rem 0.5rem 1rem;
-    padding-left: var(--st-subnodes-padding-left);
+    padding-left: var(--treeview-root-padding-left);
 }
 
 .tree__label {
@@ -188,7 +189,6 @@ body {
     width: var(--st-collapse-icon-size);
     height: var(--st-collapse-icon-size);
     stroke-width: 2px;
-    margin-left: 8px;
 }
 
 /* Node Content Span (Text, Icon, Count) - Adapt from Example */
