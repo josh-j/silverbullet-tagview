@@ -2,20 +2,65 @@
  * Page variables - Adapted from Example
  *****************************************************************************/
 html {
+    --treeview-panel-background-color: var(
+        --root-background-color,
+        var(--background-color, var(--editor-background-color, #1f1f1f))
+    );
+    --treeview-panel-color: var(--root-color, var(--text-color, #e6e6e6));
+    --treeview-panel-muted-color: var(
+        --text-muted,
+        var(--treeview-panel-color)
+    );
+    --treeview-widget-background-color: var(
+        --editor-widget-background-color,
+        var(--subtle-background-color, rgba(127, 127, 127, 0.12))
+    );
+    --treeview-border-color: var(
+        --divider-color,
+        var(--top-border-color, rgba(127, 127, 127, 0.3))
+    );
+    --treeview-accent-color: var(--ui-accent-color, #7aa2f7);
+    --treeview-button-background-color: var(
+        --action-button-background-color,
+        transparent
+    );
+    --treeview-button-color: var(
+        --action-button-color,
+        var(--treeview-panel-color)
+    );
+    --treeview-button-hover-color: var(
+        --action-button-hover-color,
+        var(--treeview-accent-color)
+    );
+    --treeview-button-active-color: var(
+        --action-button-active-color,
+        var(--treeview-accent-color)
+    );
+    --treeview-border-radius-sm: var(--border-radius-sm, 4px);
+    --treeview-editor-font: var(--editor-font, var(--ui-font, sans-serif));
+    --treeview-editor-font-size: var(--editor-font-size, 14px);
+
     /* Using example's border approach */
     --treeview-node-border-width: 2px; /* Example uses 2px */
     --treeview-node-border-radius: 5px; /* Example uses 5px */
 
     /* Define colors similar to example, mapping to SB vars where possible */
-    --treeview-page-color: var(--text-color); /* Default text */
+    --treeview-page-color: var(--text-color, var(--treeview-panel-color));
     --treeview-page-background-color: var(
-        --subtle-background-color
-    ); /* Use subtle for default bg */
+        --subtle-background-color,
+        var(--treeview-widget-background-color)
+    );
     --treeview-page-border-color: transparent; /* Start transparent */
 
     /* Style for Folders and Tags */
-    --treeview-folder-tag-color: var(--text-color);
-    --treeview-folder-tag-background-color: var(--subtle-background-color);
+    --treeview-folder-tag-color: var(
+        --text-color,
+        var(--treeview-panel-color)
+    );
+    --treeview-folder-tag-background-color: var(
+        --subtle-background-color,
+        var(--treeview-widget-background-color)
+    );
     --treeview-folder-tag-border-color: transparent;
 
     /* Style for the currently viewed page */
@@ -23,11 +68,11 @@ html {
         --accent-text-color,
         #eee
     ); /* Fallback color */
-    --treeview-current-page-background-color: var(--ui-accent-color);
-    --treeview-current-page-border-color: var(--ui-accent-color);
+    --treeview-current-page-background-color: var(--treeview-accent-color);
+    --treeview-current-page-border-color: var(--treeview-accent-color);
 
     /* Icon Color */
-    --treeview-icon-color: var(--text-muted); /* Color for chevron SVG */
+    --treeview-icon-color: var(--treeview-panel-muted-color);
 
 }
 
@@ -46,16 +91,19 @@ html {
  *****************************************************************************/
 html,
 body {
-    background-color: var(--root-background-color);
+    background-color: var(--treeview-panel-background-color);
+    color: var(--treeview-panel-color);
     padding: 0;
     margin: 0;
     overflow: initial !important;
+    min-height: 100vh;
 }
 
 .treeview-root {
-    background-color: var(--root-background-color);
-    color: var(--root-color);
-    font-family: var(--ui-font);
+    background-color: var(--treeview-panel-background-color);
+    color: var(--treeview-panel-color);
+    font-family: var(--ui-font, sans-serif);
+    min-height: 100vh;
 }
 
 /******************************************************************************
@@ -66,7 +114,7 @@ body {
     top: 0;
     z-index: 2;
     padding: 0.5rem 0.5rem 0rem;
-    background-color: var(--root-background-color);
+    background-color: var(--treeview-panel-background-color);
     flex-shrink: 0;
 }
 .treeview-actions {
@@ -74,10 +122,10 @@ body {
     justify-content: space-between;
     align-items: flex-start;
     width: 100%;
-    background-color: var(--editor-widget-background-color);
-    border: var(--top-border-color, var(--divider-color)) 1px solid;
+    background-color: var(--treeview-widget-background-color);
+    border: var(--treeview-border-color) 1px solid;
     border-radius: 5px;
-    color: var(--top-color, var(--text-color));
+    color: var(--top-color, var(--treeview-panel-color));
     padding: 2px;
     box-sizing: border-box;
 }
@@ -99,18 +147,18 @@ body {
     justify-content: center;
     margin: 3px;
     padding: 5px;
-    background-color: var(--action-button-background-color);
+    background-color: var(--treeview-button-background-color);
     border: 0;
-    color: var(--action-button-color);
+    color: var(--treeview-button-color);
     cursor: pointer;
     flex-shrink: 0;
-    border-radius: var(--border-radius-sm);
+    border-radius: var(--treeview-border-radius-sm);
 }
 .treeview-actions button:hover {
-    color: var(--action-button-hover-color);
+    color: var(--treeview-button-hover-color);
 }
 .treeview-actions button:active {
-    color: var(--action-button-active-color);
+    color: var(--treeview-button-active-color);
 }
 .treeview-actions button > svg {
     height: 18px;
@@ -122,17 +170,17 @@ body {
 .treeview-filter-row input {
     width: 100%;
     box-sizing: border-box;
-    border: 1px solid var(--divider-color);
-    border-radius: var(--border-radius-sm);
-    background-color: var(--editor-widget-background-color);
-    color: var(--text-color);
-    font-family: var(--editor-font);
-    font-size: var(--editor-font-size);
+    border: 1px solid var(--treeview-border-color);
+    border-radius: var(--treeview-border-radius-sm);
+    background-color: var(--treeview-widget-background-color);
+    color: var(--treeview-panel-color);
+    font-family: var(--treeview-editor-font);
+    font-size: var(--treeview-editor-font-size);
     line-height: 1.4;
     padding: 5px 7px;
 }
 .treeview-filter-row input:focus {
-    border-color: var(--ui-accent-color);
+    border-color: var(--treeview-accent-color);
     outline: none;
 }
 .treeview-filtering sortable-tree-node.treeview-filter-hidden {
@@ -142,7 +190,7 @@ body {
     display: flex;
 }
 .treeview-filter-match > .tree__label > span {
-    border-color: var(--ui-accent-color);
+    border-color: var(--treeview-accent-color);
 }
 
 /******************************************************************************
@@ -154,7 +202,7 @@ body {
     display: flex;
     flex-direction: column;
     margin: 0.25rem 0.5rem 1rem;
-    padding-left: var(--treeview-root-padding-left);
+    padding-left: var(--treeview-root-padding-left, 1rem);
 }
 
 .tree__label {
@@ -176,7 +224,7 @@ body {
 
 /* Collapse icon container span */
 .tree__collapse {
-    color: var(--editor-command-button-color);
+    color: var(--editor-command-button-color, var(--treeview-panel-muted-color));
 }
 
 .tree__collapse:hover {
@@ -200,8 +248,8 @@ body {
     border-style: solid;
     border-radius: var(--treeview-node-border-radius);
     cursor: pointer;
-    font-family: var(--editor-font);
-    font-size: var(--editor-font-size);
+    font-family: var(--treeview-editor-font);
+    font-size: var(--treeview-editor-font-size);
     line-height: 1.4;
     text-decoration: none;
     text-overflow: ellipsis;
@@ -242,12 +290,12 @@ body {
    descendants. */
 .treeview-selected > .tree__label > span[data-node-type="folder"],
 .treeview-selected > .tree__label > span[data-node-type="tag"] {
-    border-color: var(--ui-accent-color);
+    border-color: var(--treeview-accent-color);
     background-color: var(
         --hover-background-color,
-        var(--subtle-background-color)
+        var(--treeview-widget-background-color)
     );
-    box-shadow: 0 0 0 1px var(--ui-accent-color);
+    box-shadow: 0 0 0 1px var(--treeview-accent-color);
     font-weight: 600;
 }
 
@@ -276,9 +324,9 @@ body {
 .tree__label > span[data-node-type="page"]:hover {
     background-color: var(
         --hover-background-color,
-        var(--subtle-background-color)
+        var(--treeview-widget-background-color)
     );
-    border-color: var(--ui-accent-color);
+    border-color: var(--treeview-accent-color);
 }
 .tree__label > span[data-current-page="true"]:hover {
     background-color: var(--treeview-current-page-background-color);
