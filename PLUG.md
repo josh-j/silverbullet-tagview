@@ -1,7 +1,7 @@
 ---
 name: Library/josh-j/silverbullet-tagview/PLUG
 tags: meta/library
-version: 0.20.1
+version: 0.21.0
 files:
   - treeview.plug.js
 ---
@@ -61,6 +61,8 @@ doesn't seem to apply.
 
 ## Changelog
 
+- **0.21.0** — Added a `.notag` listing, pinned to the top of the panel, that
+  groups every page carrying no tags.
 - **0.20.1** — Added resilient theme fallbacks so the tag panel keeps the correct
   dark background, text colors, controls, and root tag gutter on first render.
 - **0.20.0** — Fixed tag row spacing by separating the root gutter from child
