@@ -1,5 +1,5 @@
 name: treeview
-version: 0.21.0 # SilverBullet v2 compatible
+version: 0.21.1 # SilverBullet v2 compatible
 description: Displays a hierarchical tree view of tags and associated pages.
 assets:
   - "assets/**/*.*"
@@ -43,8 +43,8 @@ functions:
     path: "./treeview.ts:focusFilter"
     command:
       name: "Tag Tree: Filter"
-      key: /
-      mac: /
+      key: Ctrl-alt-f
+      mac: Cmd-alt-f
 
   # User facing command - report the plug version
   version:
