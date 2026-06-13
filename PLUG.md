@@ -1,7 +1,7 @@
 ---
 name: Library/josh-j/silverbullet-tagview/PLUG
 tags: meta/library
-version: 0.21.0
+version: 0.21.1
 files:
   - treeview.plug.js
 ---
@@ -15,7 +15,7 @@ A hierarchical, tag-based navigation panel for SilverBullet v2.
 | Command | Default key | Description |
 |---------|-------------|-------------|
 | `Tag Tree: Toggle` | `Ctrl/Cmd-Alt-B` | Show/hide the tag tree panel |
-| `Tag Tree: Filter` | `/` | Focus the tag/page filter |
+| `Tag Tree: Filter` | `Ctrl/Cmd-Alt-F` | Focus the tag/page filter (also `/` while the panel is focused) |
 | `Tag Tree: Rename Tag` | — | Rename a tag everywhere it's used |
 | `Tag Tree: Version` | — | Show the installed plug version |
 
