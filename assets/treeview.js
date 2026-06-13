@@ -210,19 +210,6 @@ function initializeTreeViewPanel(config) {
     }
   });
 
-  document.addEventListener("keydown", (event) => {
-    const target = event.target;
-    const isTyping = target instanceof HTMLInputElement ||
-      target instanceof HTMLTextAreaElement ||
-      target instanceof HTMLSelectElement ||
-      target?.isContentEditable;
-    if (event.key === "/" && !event.metaKey && !event.ctrlKey && !event.altKey && !isTyping) {
-      filterInput?.focus();
-      filterInput?.select();
-      event.preventDefault();
-    }
-  });
-
   if (config.focusFilter) {
     setTimeout(() => {
       filterInput?.focus();
