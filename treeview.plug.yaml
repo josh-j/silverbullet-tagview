@@ -1,5 +1,5 @@
 name: treeview
-version: 0.21.2 # SilverBullet v2 compatible
+version: 0.22.0 # SilverBullet v2 compatible
 description: Displays a hierarchical tree view of tags and associated pages.
 assets:
   - "assets/**/*.*"

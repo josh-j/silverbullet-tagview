@@ -1,7 +1,7 @@
 ---
 name: Library/josh-j/silverbullet-tagview/PLUG
 tags: meta/library
-version: 0.21.2
+version: 0.22.0
 files:
   - treeview.plug.js
 ---
@@ -53,6 +53,12 @@ treeview:
   # Panel size as a CSS flex factor (must be a number > 0). Larger = wider/taller
   # relative to the editor. Default: 1
   size: 1
+
+  # Page-path prefixes to exclude from the synthetic `.notag` listing. Matching
+  # pages are still indexed normally under their tags; they're just omitted from
+  # `.notag`. Must be an array of strings. Default: [] (exclude nothing)
+  notagIgnore:
+    - Clippings/
 ```
 
 Invalid values are ignored (the default is used) and the plug flashes a
@@ -61,6 +67,8 @@ doesn't seem to apply.
 
 ## Changelog
 
+- **0.22.0** — Added the `notagIgnore` config option to exclude pages under given
+  path prefixes (e.g. `Clippings/`) from the `.notag` listing.
 - **0.21.0** — Added a `.notag` listing, pinned to the top of the panel, that
   groups every page carrying no tags.
 - **0.20.1** — Added resilient theme fallbacks so the tag panel keeps the correct

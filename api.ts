@@ -39,7 +39,7 @@
       for (const node of nodes) sortTree(node.nodes);
     }
 
-    export async function getTagTree(_config: TagTreeViewConfig): Promise<{ nodes: TreeNode[] }> {
+    export async function getTagTree(config: TagTreeViewConfig): Promise<{ nodes: TreeNode[] }> {
       // Fetch flat tag index entries.
       let tagIndexEntries: TagIndexEntry[] = [];
       try {
@@ -119,10 +119,14 @@
           for (const page of pages) taggedPages.add(page);
         }
 
+        // Prefixes whose pages should be omitted from the .notag listing.
+        const ignorePrefixes = config.notagIgnore ?? [];
+
         const untaggedPages: string[] = [];
         for (const pageMeta of await space.listPages()) {
           if (pageMeta && typeof pageMeta.name === "string" && pageMeta.name &&
-              !taggedPages.has(pageMeta.name)) {
+              !taggedPages.has(pageMeta.name) &&
+              !ignorePrefixes.some((prefix) => pageMeta.name.startsWith(prefix))) {
             untaggedPages.push(pageMeta.name);
           }
         }
